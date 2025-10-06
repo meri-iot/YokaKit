@@ -2,12 +2,14 @@
 <script>
     $(async () => {
 
-        // サーバー時刻とのズレを取得
-        const offset = await Util.getServerDateOffsetAsync(@json(route('date')));
-
         // 工程
         const process = @json($process);
         console.log('process', process);
+
+        // 異常イベント
+        const abnormalEvents = @json($process->sensorEvents);
+        const abnormals = new Set([]);
+        console.log('abnormalEvents', abnormalEvents);
 
         // 生産ラインのカウント
         const lines = @json($lines);
@@ -53,7 +55,14 @@
         // 生産数の表示
         datasets.forEach(x => updateCount(x.lineId, x.data.last().y));
         // 指標の更新
-        updateIndicator(new Production(indicatorLine.productions.last(), cycleTimeMs, overTimeMs));
+        const lastProduction = indicatorLine.productions.last();
+        lastProduction.defective_count = lines
+            .filter(x => x.defective && x.parent_id === indicatorLine.production_line_id)
+            .sum(x => x.defective_productions.last().count);
+        const firstPayload = new Production(lastProduction, cycleTimeMs, overTimeMs, history.count_switch);
+        updateIndicator(firstPayload);
+        updateStatus(firstPayload);
+        addAbnormalEvents(abnormalEvents);
 
         // 計画値の描画データセット
         const planDatasets = {
@@ -165,15 +174,30 @@
             }
         });
 
-        // 指標通知イベントの登録
-        Echo.join('summary')
-            .listen('ProductionSummaryNotification', (data) => {
-                if (process.process_id === data.processId) {
-                    const payload = new Payload(data);
-                    updateIndicator(payload);
-                    updateChart(payload);
-                }
-            });
+        if (history.status_name != 'COMPLETE') {
+            // 指標通知イベントの登録
+            Echo.join('summary')
+                .listen('ProductionSummaryNotification', (data) => {
+                    if (process.process_id === data.processId) {
+                        const payload = new Payload(data);
+                        updateIndicator(payload);
+                        updateChart(payload);
+                        updateStatus(payload);
+                    }
+                });
+            // アラーム通知イベントの登録
+            Echo.join('alarm')
+                .listen('SensorAlarmNotification', (data) => {
+                    if (process.process_id !== data.process_id) {
+                        return;
+                    }
+                    if (data.is_start) {
+                        addAbnormalEvents([data]);
+                    } else {
+                        removeAbnormalEvent(data);
+                    }
+                });
+        }
 
         function createInitialCountChart(line) {
             return (line.defective ? line.defective_productions : line.productions)
@@ -244,6 +268,44 @@
         }
 
         /**
+         * 工程のステータスを更新する
+         *
+         * @param {Payload} payload 生産データ
+         */
+        function updateStatus(payload) {
+
+            const productionStatus = $('#production-status');
+            const runningText = @json(__('yokakit.running'));
+            const breakdownText = @json(__('yokakit.breakdown'));
+            const changeoverText = @json(__('yokakit.changeover'));
+            const plannedOutageText = @json(__('yokakit.planned_outage'));
+
+            if (payload.isBreakdown()) {
+                if (payload.inPlannedOutage) {
+                    productionStatus
+                        .removeClass()
+                        .addClass('badge badge-info')
+                        .text(plannedOutageText);
+                } else {
+                    productionStatus
+                        .removeClass()
+                        .addClass('badge badge-danger')
+                        .text(breakdownText);
+                }
+            } else if (payload.isChangeover()) {
+                productionStatus
+                    .removeClass()
+                    .addClass('badge badge-warning')
+                    .text(changeoverText);
+            } else {
+                productionStatus
+                    .removeClass()
+                    .addClass('badge badge-light')
+                    .text(runningText);
+            }
+        }
+
+        /**
          * グラフを更新する
          *
          * @param {Payload} payload 生産データ
@@ -281,7 +343,7 @@
             if (lastPlanCount !== planCount) {
                 updatePlanCount(planCount);
             }
-            if (payload.inPlannedOutage === true || payload.statusName === 'CHANGEOVER') {
+            if (payload.inPlannedOutage === true || payload.isChangeover()) {
                 if (planDatasets.data.last().x.isBefore(payload.at)) {
                     planDatasets.data.push({
                         x: payload.at,
@@ -316,6 +378,27 @@
          */
         function updatePlanCount(planCount) {
             $('#production-line-plan').text(planCount).blink(100, 2);
+        }
+
+        function addAbnormalEvents(events) {
+            const statusArea = $('#status-area');
+            for (const event of events) {
+                if (abnormals.has(event.sensor_id)) {
+                    continue;
+                }
+                statusArea.append($('<span>', {
+                    id: `sensor-id-${event.sensor_id}`,
+                    class: 'badge ml-1',
+                    style: 'font-size: 100%; background-color: var(--orange); color: black;',
+                    text: event.alarm_text,
+                }));
+                abnormals.add(event.sensor_id);
+            }
+        }
+
+        function removeAbnormalEvent(event) {
+            $(`#sensor-id-${event.sensor_id}`).remove();
+            abnormals.delete(event.sensor_id);
         }
     });
 </script>

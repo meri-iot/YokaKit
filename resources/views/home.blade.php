@@ -8,7 +8,7 @@
         <div class="col-md-12">
             <x-adminlte-card title="{{ __('yokakit.andon') }}" icon="fa-solid fa-fw fa-tower-observation" maximizable="true">
                 <div id="andon-slider">
-                    @foreach ($processes->filter(fn($x) => $x->andonLayout->is_display)->chunk($config->chunkLength()) as $chunk)
+                    @foreach ($processes->chunk($config->chunkLength()) as $chunk)
                         <div>
                             <div class="row pl-1 pr-1">
                                 @foreach ($chunk as $process)
@@ -54,73 +54,81 @@
                                             $theme = 'orange';
                                         }
                                     @endphp
-                                    <div class="col-md-{{ 12 / $config->column_count }}">
-                                        <x-adminlte-small-box id="{{ $id }}" title="{{ $title }}" text="{{ $process->process_name }}"
-                                            url="{{ $url }}" url-text="{{ $urlText }}" icon="{{ $icon }}"
-                                            theme="{{ $theme }}">
-                                            @if ($config->is_show_part_number)
-                                                <x-adminlte-profile-col-item id="part-number-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.part_number') }}"
-                                                    text="{{ $process->productionHistory?->part_number_name ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_start)
-                                                <x-adminlte-profile-col-item id="start-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.start_time') }}" text="{{ $process->productionHistory?->start ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_good_count)
-                                                <x-adminlte-profile-col-item id="good-count-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.good_count') }}" text="{{ $summary['goodCount'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_defective_count)
-                                                <x-adminlte-profile-col-item id="defective-count-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.defective_count') }}" text="{{ $summary['defectiveCount'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_good_rate)
-                                                <x-adminlte-profile-col-item id="good-rate-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.good_rate') }}" text="{{ $summary['goodRate'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_defective_rate)
-                                                <x-adminlte-profile-col-item id="defective-rate-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.defective_rate') }}" text="{{ $summary['defectiveRate'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_plan_count)
-                                                <x-adminlte-profile-col-item id="plan-count-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.plan_count') }}" text="{{ $summary['planCount'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_achievement_rate)
-                                                <x-adminlte-profile-col-item id="achievement-rate-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.achievement_rate') }}" text="{{ $summary['achievementRate'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_cycle_time)
-                                                <x-adminlte-profile-col-item id="cycle-time-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.cycle_time') }}" text="{{ $summary['cycleTime'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_time_operating_rate)
-                                                <x-adminlte-profile-col-item id="time-operating-rate-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.time_operating_rate') }}" text="{{ $summary['timeOperatingRate'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_performance_operating_rate)
-                                                <x-adminlte-profile-col-item id="performance-operating-rate-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.performance_operating_rate') }}"
-                                                    text="{{ $summary['performanceOperatingRate'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
-                                            @if ($config->is_show_overall_equipment_effectiveness)
-                                                <x-adminlte-profile-col-item id="oee-{{ $process->process_id }}"
-                                                    title="{{ __('yokakit.overall_equipment_effectiveness') }}"
-                                                    text="{{ $summary['overallEquipmentEffectiveness'] ?? '--' }}"
-                                                    size="{{ 12 / $config->item_column_count }}" />
-                                            @endif
+                                    <div class="col-md-{{ 12 / $config->column_count }} @if (!$process->andonLayout->is_display) invisible @endif">
+                                        @if ($process->andonLayout->is_display)
+                                            <x-adminlte-small-box id="{{ $id }}" title="{{ $title }}" text="{{ $process->process_name }}"
+                                                url="{{ $url }}" url-text="{{ $urlText }}" icon="{{ $icon }}"
+                                                theme="{{ $theme }}">
+                                                @if ($config->is_show_part_number)
+                                                    <x-adminlte-profile-col-item id="part-number-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.part_number') }}"
+                                                        text="{{ $process->productionHistory?->part_number_name ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_start)
+                                                    <x-adminlte-profile-col-item id="start-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.start_time') }}" text="{{ $process->productionHistory?->start ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_good_count)
+                                                    <x-adminlte-profile-col-item id="good-count-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.good_count') }}" text="{{ $summary['goodCount'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_defective_count)
+                                                    <x-adminlte-profile-col-item id="defective-count-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.defective_count') }}" text="{{ $summary['defectiveCount'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_good_rate)
+                                                    <x-adminlte-profile-col-item id="good-rate-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.good_rate') }}" text="{{ $summary['goodRate'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_defective_rate)
+                                                    <x-adminlte-profile-col-item id="defective-rate-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.defective_rate') }}" text="{{ $summary['defectiveRate'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_plan_count)
+                                                    <x-adminlte-profile-col-item id="plan-count-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.plan_count') }}" text="{{ $summary['planCount'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_achievement_rate)
+                                                    <x-adminlte-profile-col-item id="achievement-rate-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.achievement_rate') }}" text="{{ $summary['achievementRate'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_cycle_time)
+                                                    <x-adminlte-profile-col-item id="cycle-time-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.cycle_time') }}" text="{{ $summary['cycleTime'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_time_operating_rate)
+                                                    <x-adminlte-profile-col-item id="time-operating-rate-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.time_operating_rate') }}"
+                                                        text="{{ $summary['timeOperatingRate'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_performance_operating_rate)
+                                                    <x-adminlte-profile-col-item id="performance-operating-rate-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.performance_operating_rate') }}"
+                                                        text="{{ $summary['performanceOperatingRate'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_overall_equipment_effectiveness)
+                                                    <x-adminlte-profile-col-item id="oee-{{ $process->process_id }}"
+                                                        title="{{ __('yokakit.overall_equipment_effectiveness') }}"
+                                                        text="{{ $summary['overallEquipmentEffectiveness'] ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                                @if ($config->is_show_goal)
+                                                    <x-adminlte-profile-col-item id="goal-{{ $process->process_id }}" title="{{ __('yokakit.goal') }}"
+                                                        text="{{ $process->productionHistory?->goal ?? '--' }}"
+                                                        size="{{ 12 / $config->item_column_count }}" />
+                                                @endif
+                                        @endif
                                         </x-adminlte-small-box>
                                     </div>
                                 @endforeach
@@ -161,7 +169,7 @@
                 speed: slideSpeed,
             });
 
-            const processes = @json($processes);
+            const processes = @json($processes).filter(p => p.andon_layout.is_display);
             console.log('processes', processes);
 
             const payloads = processes
@@ -171,22 +179,29 @@
                 }, {});
             console.log('payloads', payloads);
 
-            const smallBoxes = Object.assign(...Object.values(processes)
+            const _processes = Object.values(processes)
                 .filter(x => x.andon_layout.is_display)
                 .map(x => {
                     const obj = {};
                     obj[x.process_id] = new _AdminLTE_SmallBox(`process-${x.process_id}`);
                     return obj;
-                }));
+                });
+            const smallBoxes = _processes.length === 0 ? {} : Object.assign(..._processes);
             console.log('smallBoxes', smallBoxes);
 
-            const alarms = processes.reduce((carry, process) => ({
-                ...carry,
-                [process.process_id]: {
+            const alarms = processes.reduce((carry, process) => {
+                const alarm = {
                     status: process.production_history?.status_name ?? 'COMPLETE',
                     events: process.sensor_events,
-                }
-            }), {});
+                    sensorId: process.sensor_events[0]?.sensor_id,
+                    processId: process.process_id,
+                };
+                const smallBox = smallBoxes[process.process_id];
+                showAlarm(smallBox, alarm, null, process);
+                carry[process.process_id] = alarm;
+                return carry;
+            }, {});
+            console.log('alarms', alarms);
 
             const updateAndonFunc = {
                 RUNNING: updateAndonAsRunning,
@@ -194,8 +209,6 @@
                 BREAKDOWN: updateAndonAsBreakdown,
                 COMPLETE: updateAndonAsComplete,
             };
-
-            const blankText = '--';
 
             Echo.join('alarm')
                 .listen('SensorAlarmNotification', (data) => {
@@ -210,6 +223,11 @@
                         } else {
                             alarm.events = alarm.events.filter(x => x.sensor_id !== data.sensor_id);
                             if (alarm.events.length === 0) {
+                                if (alarm.intervalId) {
+                                    clearInterval(alarm.intervalId);
+                                    delete alarm.intervalId;
+                                    delete alarm.sensorId;
+                                }
                                 const fn = updateAndonFunc[alarm.status];
                                 const payload = payloads[data.process_id];
                                 fn & fn(smallBox, payload);
@@ -246,6 +264,11 @@
                 }, 300);
             });
 
+            $('.small-box>.inner>h3').css('font-size', config.font_ratio * 2.2 + 'rem');
+            $('.small-box>.inner>h5').css('font-size', config.font_ratio * 1.25 + 'rem');
+            $('.description-block>.description-header').css('font-size', config.font_ratio * 16 + 'px');
+            $('.description-block>.description-text>span').css('font-size', config.font_ratio + 'rem');
+
             function isUpdateIndicator() {
                 return config.is_show_good_rate ||
                     config.is_show_good_count ||
@@ -267,17 +290,43 @@
                 }, false);
             }
 
-            function showAlarm(smallBox, alarm, status) {
+            function showAlarm(smallBox, alarm, status, process) {
                 if (status) {
                     alarm.status = status;
                 }
-                const event = alarm.events[0];
-                if (event && alarm.status !== 'COMPLETE') {
-                    smallBox.update({
-                        title: event.alarm_text,
-                        icon: 'fas fa-ban',
-                        theme: 'orange',
-                    });
+                if (process && process.production_history == null) {
+                    return;
+                }
+                if (alarm.events.length) {
+                    if (alarm.intervalId) {
+                        clearInterval(alarm.intervalId);
+                        delete alarm.intervalId;
+                    }
+                    if (alarm.events.length === 1) {
+                        const before = alarm.sensorId;
+                        const after = alarm.events[0].sensor_id;
+                        alarm.sensorId = after;
+                        smallBox.update({
+                            title: alarm.events[0].alarm_text,
+                            icon: 'fas fa-ban',
+                            theme: 'orange',
+                        });
+                        if (before != null && before != after) {
+                            $(`#process-${alarm.processId}>.inner>h3`).hide().fadeIn();
+                        }
+                    } else {
+                        alarm.intervalId = setInterval(() => {
+                            const idx = alarm.events.findIndex(e => e.sensor_id === alarm.sensorId);
+                            const next = (idx + 1) % alarm.events.length;
+                            alarm.sensorId = alarm.events[next].sensor_id;
+                            smallBox.update({
+                                title: alarm.events[next].alarm_text,
+                                icon: 'fas fa-ban',
+                                theme: 'orange',
+                            });
+                            $(`#process-${alarm.processId}>.inner>h3`).hide().fadeIn();
+                        }, 5000);
+                    }
                     return true;
                 } else {
                     return false;
@@ -330,6 +379,7 @@
 
             function updateDisplayItem(payload) {
                 if (payload) {
+                    console.log('ここ', payload);
                     updatePartNumberName(payload);
                     updateStart(payload);
                     updateGoodCount(payload);
@@ -342,8 +392,11 @@
                     updateTimeOperatingRate(payload);
                     updatePerformanceOperatingRate(payload);
                     updateOverallEquipmentEffectiveness(payload);
+                    updateGoal(payload);
                 }
             }
+
+            const blankText = '--';
 
             function updatePartNumberName(payload) {
                 if (config.is_show_part_number) {
@@ -473,6 +526,17 @@
                         $(key).text(blankText);
                     } else {
                         $(key).text(`${payload.overallEquipmentEffectiveness().rate()} [%]`);
+                    }
+                }
+            }
+
+            function updateGoal(payload) {
+                if (config.is_show_goal) {
+                    const key = `#goal-${payload.processId} .description-text`;
+                    if (payload.isComplete()) {
+                        $(key).text(blankText);
+                    } else {
+                        $(key).text(payload.goal);
                     }
                 }
             }

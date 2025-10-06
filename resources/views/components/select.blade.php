@@ -1,4 +1,4 @@
-@props(['name', 'label', 'required' => null, 'icon' => null, 'selected' => null, 'hide' => false])
+@props(['name', 'label', 'required' => null, 'icon' => null, 'selected' => null, 'hide' => false, 'empty' => false])
 
 @php
     $fgroup = '';
@@ -22,5 +22,9 @@
             </div>
         </x-slot>
     @endisset
-    <x-adminlte-options placeholder="" selected="{{ $selected }}" />
+    @if ($empty)
+        <x-adminlte-options placeholder="" selected="{{ $selected }}" empty-option="　" />
+    @else
+        <x-adminlte-options placeholder="" selected="{{ $selected }}" />
+    @endif
 </x-adminlte-select>
