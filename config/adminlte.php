@@ -275,6 +275,11 @@ return [
             'route' => 'switch.index',
             'icon' => 'fa-solid fa-fw fa-rotate',
         ],
+        [
+            'text' => 'gantt_chart',
+            'route' => 'gantt.index',
+            'icon' => 'fa-solid fa-fw fa-chart-gantt',
+        ],
         // [
         //     'text' => 'history',
         //     'url' => '#',

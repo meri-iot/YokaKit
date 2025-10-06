@@ -28,7 +28,7 @@ class StoreLineRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
@@ -37,7 +37,7 @@ class StoreLineRequest extends FormRequest
             'chart_color' => 'required|string|color',
             'raspberry_pi_id' => 'required|integer|exists:raspberry_pis,raspberry_pi_id',
             'worker_id' => "nullable|integer|exists:workers,worker_id|unique:lines,worker_id,{$this->process_id},process_id,raspberry_pi_id,{$this->raspberry_pi_id}",
-            'pin_number' => "required|integer|min:2|max:27|unique:lines,pin_number,NULL,line_id,raspberry_pi_id,{$this->raspberry_pi_id}",
+            'pin_number' => "required|integer|min:0|max:127|unique:lines,pin_number,NULL,line_id,raspberry_pi_id,{$this->raspberry_pi_id}",
             'defective' => 'required|boolean',
             'parent_id' => [
                 'required_if:defective,true',

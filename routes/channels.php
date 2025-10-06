@@ -2,7 +2,6 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
-use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,18 +14,6 @@ use Illuminate\Support\Facades\Log;
 |
 */
 
-Broadcast::channel('production.{productionHistoryId}', function (User $user, int $productionHistoryId) {
-    return $user;
-});
-
-Broadcast::channel('production', function (User $user) {
-    return $user;
-});
-
-Broadcast::channel('status', function (User $user) {
-    return $user;
-});
-
 Broadcast::channel('alarm', function (User $user) {
     return $user;
 });
@@ -36,5 +23,9 @@ Broadcast::channel('onoff', function (User $user) {
 });
 
 Broadcast::channel('summary', function (User $user) {
+    return $user;
+});
+
+Broadcast::channel('gantt-chart', function (User $user) {
     return $user;
 });

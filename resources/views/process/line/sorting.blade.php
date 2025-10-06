@@ -1,6 +1,6 @@
 @extends('components.header', ['breadcrumbs' => $process])
 
-@section('title', __('yokakit.sort'))
+@section('title', __('yokakit.target_sort', ['target' => __('yokakit.line')]))
 
 @section('content')
     <div class="row">

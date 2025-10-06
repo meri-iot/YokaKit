@@ -12,7 +12,7 @@
                 <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.process')]) }}</strong>
                 <x-adminlte-card class="mt-4">
                     <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.process')]) }}</strong>
-                    <p class="mt-1 ml-2 mb-0">{{ $process->process_name }}</p>
+                    <p class="mb-0 ml-2 mt-1">{{ $process->process_name }}</p>
                 </x-adminlte-card>
             </x-modal-delete>
         @endif
@@ -20,12 +20,18 @@
 </div>
 <div class="mt-2 p-4">
     <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.process')]) }}</strong>
-    <p class="text-muted mt-1 ml-2">{{ $process->process_name }}</p>
+    <p class="text-muted ml-2 mt-1">{{ $process->process_name }}</p>
     <hr>
     <strong>{{ __('yokakit.plan_color') }}</strong>
-    <p class="text-muted mt-1 ml-2">
+    <p class="text-muted ml-2 mt-1">
         <i class="fa-solid fa-fw fa-square-full" style="padding-top:1px; color: {{ $process->plan_color }}"></i>
     </p>
+    <hr>
+    <strong>{{ __('yokakit.count_switch') }}</strong>
+    <p class="text-muted ml-2 mt-1">{{ $process->count_switch ? __('yokakit.good_count') : __('yokakit.number_of_production') }}</p>
+    <hr>
+    <strong>{{ __('yokakit.gantt_chart') }}{{ __('yokakit.range') }}</strong>
+    <p class="text-muted ml-2 mt-1">{{ __('yokakit.target_hour', ['target' => $process->range / 60]) }}</p>
     <hr>
     <div class="float-right mt-4">
         @if ($process->raspberryPis->count() !== 0)
@@ -52,7 +58,7 @@
     </div>
     {{-- 工程ステータス --}}
     <strong>{{ __('yokakit.status') }}</strong>
-    <p class="text-muted mt-1 ml-2">
+    <p class="text-muted ml-2 mt-1">
         @if ($process->isStopped())
             {{ __('yokakit.stop') }}
         @else
@@ -62,5 +68,5 @@
     </p>
     <hr>
     <strong>{{ __('yokakit.remark') }}</strong>
-    <p class="text-muted text-area mt-1 ml-2">{{ $process->remark }}</p>
+    <p class="text-muted text-area ml-2 mt-1">{{ $process->remark }}</p>
 </div>

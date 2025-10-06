@@ -4,6 +4,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AndonController;
 use App\Http\Controllers\CycleTimeController;
 use App\Http\Controllers\DataTables\DataTablesLocaleController;
+use App\Http\Controllers\GanttChartController;
 use App\Http\Controllers\LineController;
 use App\Http\Controllers\OnOffController;
 use App\Http\Controllers\PartNumberController;
@@ -216,5 +217,30 @@ Route::group(['prefix' => 'process/{process}/production', 'as' => 'production.']
         Route::put('/stop', 'stop')->name('stop');
         Route::put('/changeover/start', 'startChangeover')->name('start_changeover');
         Route::put('/changeover/stop', 'stopChangeover')->name('stop_changeover');
+        Route::get('/history/{history}/download', 'download')->name('download');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
+});
+
+// ガントチャート
+Route::group(['prefix' => 'process/{process}/gantt', 'as' => 'gantt-chart.'], function () {
+    Route::controller(GanttChartController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{ganttChart}/edit', 'edit')->name('edit');
+        Route::put('/{ganttChart}', 'update')->name('update');
+        Route::delete('/{ganttChart}', 'destroy')->name('destroy');
+        Route::get('/sorting', 'sorting')->name('sorting');
+        Route::post('/sort', 'sort')->name('sort');
+        Route::get('/history', 'history')->name('history');
+        Route::get('/download', 'download')->name('download');
+    });
+});
+
+// ガントチャート
+Route::group(['prefix' => 'gantt', 'as' => 'gantt.'], function () {
+    Route::controller(GanttChartController::class)->group(function () {
+        Route::get('/', 'all')->name('index');
     });
 });

@@ -22,7 +22,7 @@ class SwitchPartNumberRequestFromApi extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
@@ -31,6 +31,7 @@ class SwitchPartNumberRequestFromApi extends FormRequest
             'partNumberName' => 'required|string|exists:part_numbers,part_number_name',
             'goal' => 'nullable|integer|gte:0|lte:2147483647',
             'force' => 'required|boolean',
+            'changeover' => 'required|boolean',
         ];
     }
 
@@ -41,9 +42,10 @@ class SwitchPartNumberRequestFromApi extends FormRequest
      */
     protected function prepareForValidation()
     {
-        if (is_null($this->force)) {
-            $this->merge(['force' => true]);
-        }
+        $this->merge([
+            'force' => is_null($this->force) ? true : $this->force,
+            'changeover' => is_null($this->changeover) ? true : $this->changeover,
+        ]);
     }
 
     /**

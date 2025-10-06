@@ -7,12 +7,12 @@ use App\Events\ProductionSummaryNotification;
 use App\Repositories\PayloadRepository;
 use App\Repositories\ProductionHistoryRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -64,7 +64,7 @@ class StopJob implements ShouldQueue
             foreach ($history->productionLines as $productionLine) {
                 $payloadData = $payloadRepository->updatePayload(
                     $productionLine,
-                    fn (PayloadData $x) => $x->complete($this->date)
+                    fn(PayloadData $x) => $x->complete($this->date)
                 );
                 // $result = $payloadRepository->delete($productionLine->production_line_id);
                 // Utility::throwIfException($productionLine, $result);

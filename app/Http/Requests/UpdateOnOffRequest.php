@@ -28,7 +28,7 @@ class UpdateOnOffRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
@@ -37,7 +37,7 @@ class UpdateOnOffRequest extends FormRequest
             'event_name' => "required|string|max:64|unique:on_offs,event_name,{$this->on_off_id},on_off_id,process_id,{$this->process_id}",
             'on_message' => 'required|max:64|string',
             'off_message' => 'nullable|max:64|string',
-            'pin_number' => "required|integer|min:2|max:27|unique:on_offs,pin_number,{$this->on_off_id},on_off_id,process_id,{$this->process_id}",
+            'pin_number' => "required|integer|min:0|max:127|unique:on_offs,pin_number,{$this->on_off_id},on_off_id,process_id,{$this->process_id}",
         ];
     }
 

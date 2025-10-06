@@ -12,12 +12,12 @@ use App\Repositories\ProductionHistoryRepository;
 use App\Repositories\ProductionLineRepository;
 use App\Repositories\ProductionRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -101,7 +101,7 @@ class BreakdownJudgeJob implements ShouldQueue
             foreach ($productionLines as $pl) {
                 $payloadData = $payloadRepository->updatePayload(
                     $pl,
-                    fn (PayloadData $x) => $x->addBreakdown($this->breakdownTime, true)
+                    fn(PayloadData $x) => $x->addBreakdown($this->breakdownTime, true)
                 );
                 $productionRepository->save($pl->production_line_id, $payloadData);
                 $pl->indicator && ProductionSummaryNotification::dispatch($history, $payloadData);

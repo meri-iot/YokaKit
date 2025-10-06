@@ -43,7 +43,7 @@ class CreateSystemUserCommand extends Command
     /**
      * コマンドの引数に適用するバリデーションルール
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     protected function rules(): array
     {

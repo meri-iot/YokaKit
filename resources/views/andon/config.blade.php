@@ -36,6 +36,7 @@
         <x-input name="slide_speed" value="{!! $config->slide_speed !!}" label="{{ __('yokakit.slide_speed') }}{{ __('yokakit.unit_millisecond') }}"
             icon="forward" required />
         <x-select name="easing" label="{{ __('yokakit.easing') }}" :options="$easing" icon="ellipsis" selected="{{ $config->easing }}" required />
+        <x-input name="font_ratio" value="{{ $config->font_ratio }}" label="{{ __('yokakit.font_ratio') }}" icon="font" required />
         <x-select name="item_column_count" label="{{ __('yokakit.item_column_count') }}" :options="$columns" icon="grip-lines-vertical"
             selected="{{ $config->item_column_count }}" required />
         <div class="row">
@@ -80,6 +81,9 @@
             <div class="col-{{ 12 / $config->item_column_count }} d-flex justify-content display-item">
                 <x-input-switch name="is_show_overall_equipment_effectiveness" label="{{ __('yokakit.is_show_overall_equipment_effectiveness') }}"
                     checked="{{ $config->is_show_overall_equipment_effectiveness }}" />
+            </div>
+            <div class="col-{{ 12 / $config->item_column_count }} d-flex justify-content display-item">
+                <x-input-switch name="is_show_goal" label="{{ __('yokakit.is_show_goal') }}" checked="{{ $config->is_show_goal }}" />
             </div>
         </div>
     </x-form-edit>

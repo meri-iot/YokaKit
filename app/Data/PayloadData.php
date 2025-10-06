@@ -4,7 +4,7 @@ namespace App\Data;
 
 use App\Enums\ProductionStatus;
 use App\Services\Utility;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -110,8 +110,9 @@ class PayloadData extends Data
      * コンストラクタ
      *
      * @param integer $lineId 生産ラインID
-     * @param array<int, int> $defectiveCounts 不良品カウント
+     * @param array<int,int> $defectiveCounts 不良品カウント
      * @param string $start 生産開始時刻
+     * @param boolean $countSwitch カウント切替
      * @param integer $cycleTimeMs サイクルタイムミリ秒
      * @param integer $overTimeMs オーバータイムミリ秒
      * @param array<int, array{startTime: string, endTime: string}> $plannedOutages 計画停止時間
@@ -122,6 +123,7 @@ class PayloadData extends Data
         public readonly int $lineId,
         public array $defectiveCounts,
         public readonly string $start,
+        public readonly bool $countSwitch,
         public readonly int $cycleTimeMs,
         public readonly int $overTimeMs,
         public readonly array $plannedOutages,
@@ -133,13 +135,28 @@ class PayloadData extends Data
     }
 
     /**
+     * 生産数を取得する
+     *
+     * @return integer 生産数
+     */
+    public function totalCount(): int
+    {
+        // Log::debug('Count Switch', [$this->countSwitch, $this->count]);
+        if ($this->countSwitch) {
+            return $this->count + $this->defectiveCount();
+        } else {
+            return $this->count;
+        }
+    }
+
+    /**
      * 良品数を取得する
      *
      * @return integer 良品数
      */
     public function goodCount(): int
     {
-        return $this->count - $this->defectiveCount();
+        return $this->totalCount() - $this->defectiveCount();
     }
 
     /**
@@ -149,7 +166,7 @@ class PayloadData extends Data
      */
     public function defectiveCount(): int
     {
-        return array_reduce($this->defectiveCounts, fn (int $total, int $count) => $total + $count, 0);
+        return array_reduce($this->defectiveCounts, fn(int $total, int $count) => $total + $count, 0);
     }
 
     /**
@@ -175,10 +192,11 @@ class PayloadData extends Data
      */
     public function goodRate(): float
     {
-        if ($this->count === 0) {
+        $totalCount = $this->totalCount();
+        if ($totalCount <= 0) {
             return 0;
         } else {
-            return ($this->count - $this->defectiveCount()) / $this->count;
+            return ($totalCount - $this->defectiveCount()) / $totalCount;
         }
     }
 
@@ -189,10 +207,11 @@ class PayloadData extends Data
      */
     public function defectiveRate(): float
     {
-        if ($this->count === 0) {
+        $totalCount = $this->totalCount();
+        if ($totalCount <= 0) {
             return 0;
         } else {
-            return $this->defectiveCount() / $this->count;
+            return $this->defectiveCount() / $totalCount;
         }
     }
 
@@ -266,13 +285,34 @@ class PayloadData extends Data
      */
     public function cycleTime(): float
     {
-        $breakDownCount = count($this->breakdowns);
-        $productionCount = $this->count - $this->autoResumeCount - $breakDownCount + ($this->isBreakdown() ? 1 : 0);
+        $breakDownCount = $this->breakDownCount();
+        $totalCount = $this->totalCount();
+        $productionCount = $totalCount - $this->autoResumeCount - $breakDownCount + ($this->isBreakdown() ? 1 : 0);
         if ($productionCount === 0) {
             return 0;
         } else {
             return max(0, ($this->netTime - $this->overTimeMs * $breakDownCount) / ($productionCount * 1000));
         }
+    }
+
+    /**
+     * チョコ停回数を取得する
+     *
+     * @return integer チョコ停回数
+     */
+    public function breakDownCount(): int
+    {
+        return count($this->breakdowns);
+    }
+
+    /**
+     * チョコ停区間を取得する
+     *
+     * @return Collection<FromTo> チョコ停区間
+     */
+    public function breakDownSections(): Collection
+    {
+        return $this->arrayToCollection($this->breakdowns);
     }
 
     /**
@@ -306,13 +346,13 @@ class PayloadData extends Data
             } else {
                 $at = Utility::parse($this->at);
                 return !$this->plannedOutageSections
-                    ->filter(fn (FromTo $x) => $x->from->lte($at) && $at->lte($x->to))
+                    ->filter(fn(FromTo $x) => $x->from->lte($at) && $at->lte($x->to))
                     ->isEmpty();
             }
         } else {
             $this->plannedOutageSections = $this->plannedOutageSections($date);
             return !$this->plannedOutageSections
-                ->filter(fn (FromTo $x) => $x->from->lte($date) && $date->lte($x->to))
+                ->filter(fn(FromTo $x) => $x->from->lte($date) && $date->lte($x->to))
                 ->isEmpty();
         }
     }
@@ -537,7 +577,7 @@ class PayloadData extends Data
      */
     private function totalLoadingLossTime(): int
     {
-        return $this->plannedOutageSections->reduce(fn (int $result, FromTo $value) => $result + $value->span(), 0);
+        return $this->plannedOutageSections->reduce(fn(int $result, FromTo $value) => $result + $value->span(), 0);
     }
 
     /**
@@ -548,7 +588,7 @@ class PayloadData extends Data
     private function totalStopLossTime(): int
     {
         $mergedSections = PayloadData::mergeSections($this->plannedOutageSections, $this->changeoverSections);
-        return $mergedSections->reduce(fn (int $result, FromTo $value) => $result + $value->span(), 0);
+        return $mergedSections->reduce(fn(int $result, FromTo $value) => $result + $value->span(), 0);
     }
 
     /**
@@ -559,7 +599,7 @@ class PayloadData extends Data
     private function totalPerformanceLossTime(): int
     {
         $mergedSections = PayloadData::mergeSections($this->plannedOutageSections, $this->changeoverSections, $this->breakdownSections);
-        return $mergedSections->reduce(fn (int $result, FromTo $value) => $result + $value->span(), 0);
+        return $mergedSections->reduce(fn(int $result, FromTo $value) => $result + $value->span(), 0);
     }
 
     /**
@@ -570,7 +610,7 @@ class PayloadData extends Data
     private function plannedOutages(): Collection
     {
         return collect(array_map(
-            fn ($x) => new FromTo(Utility::parse($x['startTime'], 'H:i:s'), Utility::parse($x['endTime'], 'H:i:s')),
+            fn($x) => new FromTo(Utility::parse($x['startTime'], 'H:i:s'), Utility::parse($x['endTime'], 'H:i:s')),
             $this->plannedOutages
         ));
     }

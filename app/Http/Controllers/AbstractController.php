@@ -21,7 +21,7 @@ abstract class AbstractController extends BaseController
      *
      * @param boolean $result 成功 or 失敗
      * @param string $path リダイレクトパス
-     * @param array<string, mixed> $parameters リダイレクトパラメータ
+     * @param array<string,mixed> $parameters リダイレクトパラメータ
      * @return RedirectResponse
      */
     protected function redirectWithStore(bool $result, string $path, array $parameters = []): RedirectResponse
@@ -34,7 +34,7 @@ abstract class AbstractController extends BaseController
      *
      * @param boolean $result 成功 or 失敗
      * @param string $path リダイレクトパス
-     * @param array<string, mixed> $parameters リダイレクトパラメータ
+     * @param array<string,mixed> $parameters リダイレクトパラメータ
      * @return RedirectResponse
      */
     protected function redirectWithUpdate(bool $result, string $path, array $parameters = []): RedirectResponse
@@ -47,7 +47,7 @@ abstract class AbstractController extends BaseController
      *
      * @param boolean $result 成功 or 失敗
      * @param string $path リダイレクトパス
-     * @param array<string, mixed> $parameters リダイレクトパラメータ
+     * @param array<string,mixed> $parameters リダイレクトパラメータ
      * @return RedirectResponse
      */
     protected function redirectWithDestroy(bool $result, string $path, array $parameters = []): RedirectResponse
@@ -61,7 +61,7 @@ abstract class AbstractController extends BaseController
      * @param boolean $result 成功 or 失敗
      * @param string $action 作業名称
      * @param string $path リダイレクトパス
-     * @param array<string, mixed> $parameters リダイレクトパラメータ
+     * @param array<string,mixed> $parameters リダイレクトパラメータ
      * @return RedirectResponse
      */
     protected function redirect(bool $result, string $action, string $path, array $parameters = []): RedirectResponse

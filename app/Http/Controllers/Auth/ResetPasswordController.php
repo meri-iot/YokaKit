@@ -32,7 +32,7 @@ class ResetPasswordController extends BaseController
     /**
      * Get the password reset validation rules.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     protected function rules(): array
     {

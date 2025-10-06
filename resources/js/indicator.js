@@ -9,6 +9,8 @@ window.Indicator = class Indicator {
         this.at;
         /** @type {number} 生産数 */
         this.count;
+        /** @type {boolean} カウント切替 */
+        this.countSwitch;
         /** @type {'RUNNING'|'CHANGEOVER'|'BREAKDOWN'|'COMPLETE'} ステータス */
         this.statusName;
         /** @type {boolean} 計画停止時間中かどうか */
@@ -59,12 +61,25 @@ window.Indicator = class Indicator {
     }
 
     /**
+     * 生産数を取得する
+     *
+     * @returns {number} 生産数
+     */
+    totalCount() {
+        if (this.countSwitch) {
+            return this.count + this.defectiveCount();
+        } else {
+            return this.count;
+        }
+    }
+
+    /**
      * 良品数を取得する
      *
      * @returns {number} 良品数
      */
     goodCount() {
-        return this.count - this.defectiveCount();
+        return this.totalCount() - this.defectiveCount();
     }
 
     /**
@@ -73,10 +88,11 @@ window.Indicator = class Indicator {
      * @returns {number} 良品率(0~1)
      */
     goodRate() {
-        if (this.count === 0) {
+        const totalCount = this.totalCount();
+        if (totalCount <= 0) {
             return 0;
         } else {
-            return (this.count - this.defectiveCount()) / this.count;
+            return (totalCount - this.defectiveCount()) / totalCount;
         }
     }
 
@@ -86,10 +102,11 @@ window.Indicator = class Indicator {
      * @returns {number} 不良品率(0~1)
      */
     defectiveRate() {
-        if (this.count === 0) {
+        const totalCount = this.totalCount();
+        if (totalCount <= 0) {
             return 0;
         } else {
-            return this.defectiveCount() / this.count;
+            return this.defectiveCount() / totalCount;
         }
     }
 
@@ -118,7 +135,7 @@ window.Indicator = class Indicator {
      */
     achievementRate() {
         const planCount = this.planCount();
-        if (planCount === 0) {
+        if (planCount <= 0) {
             return 0;
         } else {
             return this.goodCount() / this.planCount();
@@ -131,8 +148,9 @@ window.Indicator = class Indicator {
      * @returns {number} サイクルタイム[s]
      */
     cycleTime() {
-        const productionCount = this.count - this.autoResumeCount - this.breakdownCount + (this.isBreakdown() ? 1 : 0);
-        if (productionCount === 0) {
+        const totalCount = this.totalCount();
+        const productionCount = totalCount - this.autoResumeCount - this.breakdownCount + (this.isBreakdown() ? 1 : 0);
+        if (productionCount <= 0) {
             return 0;
         } else {
             return Math.max(0, (this.netTime - this.overTimeMs * this.breakdownCount) / (productionCount * 1000));
@@ -145,7 +163,7 @@ window.Indicator = class Indicator {
      * @returns {number} 時間稼働率(0~1)
      */
     timeOperatingRate() {
-        if (this.loadingTime === 0) {
+        if (this.loadingTime <= 0) {
             return 0;
         } else {
             return this.operatingTime / this.loadingTime;
@@ -158,7 +176,7 @@ window.Indicator = class Indicator {
      * @returns {number} 性能稼働率(0~1)
      */
     performanceOperatingRate() {
-        if (this.operatingTime === 0) {
+        if (this.operatingTime <= 0) {
             return 0;
         } else {
             return this.netTime / this.operatingTime;

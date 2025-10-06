@@ -11,7 +11,7 @@ return [
     /**
      * アプリケーションバージョン
      */
-    'version'       => env('YOKAKIT_VERSION', '1.1.5 (2023-11-09)'),
+    'version'       => env('YOKAKIT_VERSION', '1.2.1 β (2025-07-11)'),
 
     /**
      * アプリケーションバージョン

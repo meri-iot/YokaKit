@@ -156,7 +156,7 @@ class LineController extends AbstractController
     }
 
     /**
-     * ラインの並べ替えをフォーム画面を表示する。
+     * ラインの並べ替えフォーム画面を表示する。
      *
      * @param Process $process
      * @return View

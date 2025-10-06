@@ -16,17 +16,6 @@
                             </div>
                         </div>
                     @endforeach
-                    {{-- <div class="time-label">
-                        <span class="bg-red">ほげほげ</span>
-                    </div>
-                    <div class="timeline-content">
-                        <i class="fas fa-envelope bg-blue mt-2"></i>
-                        <div class="timeline-item">
-                            <div class="timeline-header">ヘッダ</div>
-                            <div class="timeline-body">ボディ</div>
-                            <div class="timeline-footer">フッタ</div>
-                        </div>
-                    </div> --}}
                 </div>
             </x-adminlte-card>
         </div>

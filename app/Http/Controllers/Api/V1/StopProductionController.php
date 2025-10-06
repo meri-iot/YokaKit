@@ -22,8 +22,7 @@ class StopProductionController extends BaseController
      */
     public function __construct(
         private readonly ProductionHistoryService $service
-    ) {
-    }
+    ) {}
 
     /**
      * Handle the incoming request.

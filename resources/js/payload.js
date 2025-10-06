@@ -24,6 +24,8 @@ window.Payload = class Payload extends Indicator {
         this.start = moment(payload.start);
         /** @type {{string: Number}} 不良品数 */
         this.defectiveCounts = payload.defectiveCounts;
+        /** @type {number} 目標値 */
+        this.goal = payload.goal;
 
         /** @type {number} ラインID */
         super.lineId = payload.lineId;
@@ -35,6 +37,8 @@ window.Payload = class Payload extends Indicator {
         super.statusName = payload.statusName;
         /** @type {boolean} 計画停止時間中かどうか */
         super.inPlannedOutage = payload.inPlannedOutage;
+        /** @type {boolean} カウント切替 */
+        super.countSwitch = payload.countSwitch;
         /** @type {number} サイクルタイム[ms] */
         super.cycleTimeMs = payload.cycleTimeMs;
         /** @type {number} 操業時間[ms] */

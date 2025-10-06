@@ -3,14 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\NoIndicatorException;
+use App\Exports\ProductionHistoryExport;
 use App\Http\Requests\StoreProductionHistoryRequest;
 use App\Models\Process;
 use App\Models\ProductionHistory;
 use App\Services\ProductionHistoryService;
+use App\Services\Utility;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * 生産履歴コントローラー
@@ -34,18 +39,24 @@ class ProductionHistoryController extends AbstractController
      */
     public function name(): string
     {
-        return __('yokakit.production');
+        return __('yokakit.production_history');
     }
 
     /**
      * Display a listing of the resource.
      *
+     * @param Process $process 工程
+     * @param Request $request
      * @return View
      */
-    public function index(Process $process): View
+    public function index(Process $process, Request $request): View
     {
-        $histories = $this->service->histories($process->process_id);
-        return view('process.production.index', ['process' => $process, 'histories' => $histories]);
+        $partNumberName = $request->query('partNumberName');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $histories = $this->service->histories($process->process_id, $partNumberName, $startDate, $endDate);
+        $partNumbers = $this->service->productedPartNumberOptions($process);
+        return view('process.production.index', ['process' => $process, 'histories' => $histories, 'partNumbers' => $partNumbers]);
     }
 
     /**
@@ -100,6 +111,25 @@ class ProductionHistoryController extends AbstractController
             ));
         }
         return $route;
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param Process $process 工程
+     * @param Request $request 削除リクエスト
+     */
+    public function destroy(Process $process, Request $request)
+    {
+        $this->authorizeAdmin();
+        [$start, $end] = array_map('trim', explode('~', $request->input('date-range')));
+        $deleted = $this->service->destroyHistories($request->input('checkbox'));
+        return $this->redirectWithDestroy($deleted != 0, 'production.index', [
+            'process' => $process,
+            'partNumberName' => $request->input('part_number_name'),
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
     }
 
     /**
@@ -166,5 +196,18 @@ class ProductionHistoryController extends AbstractController
             $route->with('toast_danger', __('yokakit.failed_toast2', ['action' => __('yokakit.start_production')]));
         }
         return $route;
+    }
+
+    /**
+     * 生産履歴のエクセルファイルをダウンロードする
+     *
+     * @param Process $process
+     * @param ProductionHistory $history
+     * @return BinaryFileResponse
+     */
+    public function download(Process $process, ProductionHistory $history): BinaryFileResponse
+    {
+        $filename = "{$process->process_name}-{$history->part_number_name}-{$history->production_history_id}";
+        return Excel::download(new ProductionHistoryExport($history), Utility::sanitizeFileName($filename) . '.xlsx');
     }
 }

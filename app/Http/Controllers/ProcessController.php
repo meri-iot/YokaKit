@@ -6,6 +6,7 @@ use App\Http\Requests\StoreProcessRequest;
 use App\Http\Requests\UpdateProcessRequest;
 use App\Models\Process;
 use App\Services\ProcessService;
+use App\Services\Utility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -53,7 +54,10 @@ class ProcessController extends AbstractController
     public function create(): View
     {
         $this->authorizeAdmin();
-        return view('process.create');
+        $rangeOptions = Utility::rangeOptions();
+        return view('process.create', [
+            'rangeOptions' => $rangeOptions,
+        ]);
     }
 
     /**
@@ -93,7 +97,11 @@ class ProcessController extends AbstractController
     {
         $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
-        return view('process.edit', ['process' => $process]);
+        $rangeOptions = Utility::rangeOptions();
+        return view('process.edit', [
+            'process' => $process,
+            'rangeOptions' => $rangeOptions,
+        ]);
     }
 
     /**

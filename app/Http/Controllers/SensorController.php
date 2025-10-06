@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateSensorRequest;
 use App\Models\Process;
 use App\Models\Sensor;
 use App\Services\SensorService;
+use App\Services\Utility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -57,11 +58,11 @@ class SensorController extends AbstractController
         $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $raspberryPiOptions = $this->service->raspberryPiOptions();
-        $sensorTypes = $this->service->sensorTypeOptions();
+        $pinOptions = Utility::pinNumberOptions();
         return view('process.alarm.create', [
             'process' => $process,
             'raspberryPiOptions' => $raspberryPiOptions,
-            'sensorTypes' => $sensorTypes,
+            'pinOptions' => $pinOptions,
         ]);
     }
 
@@ -101,12 +102,12 @@ class SensorController extends AbstractController
     public function edit(Process $process, Sensor $sensor): View
     {
         $raspberryPiOptions = $this->service->raspberryPiOptions();
-        $sensorTypes = $this->service->sensorTypeOptions();
+        $pinOptions = Utility::pinNumberOptions();
         return view('process.alarm.edit', [
             'process' => $process,
             'sensor' => $sensor,
             'raspberryPiOptions' => $raspberryPiOptions,
-            'sensorTypes' => $sensorTypes,
+            'pinOptions' => $pinOptions,
         ]);
     }
 

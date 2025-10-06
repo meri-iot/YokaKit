@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AndonInfoController;
 use App\Http\Controllers\Api\V1\ProcessInfoController;
 use App\Http\Controllers\Api\V1\StopProductionController;
 use App\Http\Controllers\Api\V1\SwitchPartNumberController;
@@ -24,5 +25,6 @@ Route::group(['prefix' => 'v1', 'as' => 'production.'], function () {
         Route::post('/switch-part-number', SwitchPartNumberController::class)->name('switch');
         Route::post('/stop-production', StopProductionController::class)->name('stop');
         Route::get('/processes', ProcessInfoController::class)->name('processes');
+        Route::get('/andon', AndonInfoController::class)->name('andon');
     });
 });
