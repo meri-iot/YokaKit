@@ -13,8 +13,9 @@ window.Production = class Production extends Indicator {
      * @param {*} production
      * @param {number} cycleTimeMs サイクルタイム[ms]
      * @param {number} overTimeMs サイクルタイム[ms]
+     * @param {boolean} countSwitch カウントスイッチ
      */
-    constructor(production, cycleTimeMs, overTimeMs) {
+    constructor(production, cycleTimeMs, overTimeMs, countSwitch) {
 
         super(cycleTimeMs, overTimeMs);
 
@@ -40,6 +41,8 @@ window.Production = class Production extends Indicator {
         super.breakdownCount = production.breakdown_count;
         /** @type {number} 段取り替え自動復帰回数 */
         super.autoResumeCount = production.auto_resume_count;
+        /** @type {boolean} カウント切替 */
+        super.countSwitch = countSwitch;
 
         /** @type {number} 不良品数 */
         this.defectives = production.defective_count;

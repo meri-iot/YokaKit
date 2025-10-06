@@ -31,6 +31,7 @@ return [
     'raspberry_pi'                  => 'ラズベリーパイ',
     'search'                        => '検索',
     'switch_part_number'            => '品番切り替え',
+    'gantt_chart'                   => 'ガントチャート',
     'user'                          => 'ユーザー',
     'worker'                        => '作業者',
 ];
