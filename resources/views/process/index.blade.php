@@ -6,7 +6,12 @@
     @include('adminlte::partials.common.preloader')
     <div class="row">
         @php
-            $heads = ['#', __('yokakit.target_name', ['target' => __('yokakit.process')]), ['label' => __('yokakit.status'), 'width' => 15], ['label' => '', 'no-export' => true, 'width' => 5]];
+            $heads = [
+                '#',
+                __('yokakit.target_name', ['target' => __('yokakit.process')]),
+                ['label' => __('yokakit.status'), 'width' => 15],
+                ['label' => '', 'no-export' => true, 'width' => 5],
+            ];
             $nonsearch = ['orderable' => false, 'searchable' => false];
             $config = [
                 'columns' => [['visible' => false], [], $nonsearch, $nonsearch],
@@ -66,6 +71,10 @@
                         <a class="btn btn-tool" href="{{ route('onoff.index', ['process' => $process]) }}">
                             <i class="fa-solid fa-lg fa-message"></i>
                             {{ __('yokakit.notification') }}
+                        </a>
+                        <a class="btn btn-tool" href="{{ route('gantt-chart.index', ['process' => $process]) }}">
+                            <i class="fa-solid fa-lg fa-chart-gantt"></i>
+                            {{ __('yokakit.gantt_chart') }}
                         </a>
                     </td>
                 </tr>
