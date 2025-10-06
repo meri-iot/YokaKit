@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ProductionLine>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\GanttChart>
  */
-class ProductionLineFactory extends Factory
+class GanttChartFactory extends Factory
 {
     /**
      * Define the model's default state.

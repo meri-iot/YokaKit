@@ -87,8 +87,8 @@ Breadcrumbs::for('production.create', function ($trail, $process) {
 
 // 生産履歴
 Breadcrumbs::for('production.index', function ($trail, $process) {
-    $trail->parent('process.index', $process);
-    $trail->push($process->process_name . '：' . __('yokakit.production_history'), route('production.index', ['process' => $process]));
+    $trail->parent('process.show', $process);
+    $trail->push(__('yokakit.production_history'), route('production.index', ['process' => $process]));
 });
 
 // 履歴詳細
@@ -232,5 +232,41 @@ Breadcrumbs::for('line.edit', function ($trail, $process) {
 // ライン並べ替え
 Breadcrumbs::for('line.sorting', function ($trail, $process) {
     $trail->parent('process.show', $process);
-    $trail->push(__('yokakit.sort'));
+    $trail->push(__('yokakit.target_sort', ['target' => __('yokakit.line')]));
+});
+
+// ガントチャート追加
+Breadcrumbs::for('gantt-chart.create', function ($trail, $process) {
+    $trail->parent('process.show', $process);
+    $trail->push(__('yokakit.target_add', ['target' => __('yokakit.gantt_chart')]));
+});
+
+// ガントチャート編集
+Breadcrumbs::for('gantt-chart.edit', function ($trail, $process) {
+    $trail->parent('process.show', $process);
+    $trail->push(__('yokakit.target_edit', ['target' => __('yokakit.gantt_chart')]));
+});
+
+// ガントチャート並べ替え
+Breadcrumbs::for('gantt-chart.sorting', function ($trail, $process) {
+    $trail->parent('process.show', $process);
+    $trail->push(__('yokakit.target_sort', ['target' => __('yokakit.gantt_chart')]));
+});
+
+// ガントチャート表示(工程別)
+Breadcrumbs::for('gantt-chart.index', function ($trail, $process) {
+    $trail->parent('process.show', $process);
+    $trail->push($process->process_name . '：' . __('yokakit.gantt_chart'));
+});
+
+// ガントチャート履歴
+Breadcrumbs::for('gantt-chart.history', function ($trail, $process) {
+    $trail->parent('process.show', $process);
+    $trail->push($process->process_name . '：' . __('yokakit.gantt_chart_history'));
+});
+
+// ガントチャート
+Breadcrumbs::for('gantt.index', function ($trail) {
+    $trail->parent('home');
+    $trail->push(__('yokakit.gantt_chart'));
 });
