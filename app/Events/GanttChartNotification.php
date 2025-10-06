@@ -2,20 +2,20 @@
 
 namespace App\Events;
 
-use App\Data\PayloadData;
-use App\Models\ProductionHistory;
+use App\Models\GanttChartEvent;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 /**
- * 生産サマリー通知用ブロードキャスト送信クラス
+ * ガントチャート通知のブロードキャスト送信クラス
  */
-class ProductionSummaryNotification implements ShouldBroadcast
+class GanttChartNotification implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -29,13 +29,12 @@ class ProductionSummaryNotification implements ShouldBroadcast
     /**
      * イベントインスタンスを作成します。
      *
-     * @param ProductionHistory $history
-     * @param PayloadData $payloadData
+     * @param GanttChartEvent $event イベント
      */
-    public function __construct(ProductionHistory $history, PayloadData $payloadData)
+    public function __construct(GanttChartEvent $event)
     {
-        $this->data = $history->makeProductionSummary($payloadData);
-        Log::debug('Dispatch ProductionSummaryNotification', $this->data);
+        Log::debug("message", $event->toArray());
+        $this->data = $event->toArray();
     }
 
     /**
@@ -45,7 +44,7 @@ class ProductionSummaryNotification implements ShouldBroadcast
      */
     public function broadcastOn(): Channel|array
     {
-        return new PresenceChannel('summary');
+        return new PresenceChannel('gantt-chart');
     }
 
     /**

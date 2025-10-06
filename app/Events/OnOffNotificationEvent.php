@@ -21,7 +21,7 @@ class OnOffNotificationEvent implements ShouldBroadcast
     /**
      * ブロードキャスト送信データ
      *
-     * @var array<string, mixed>
+     * @var array<string,mixed>
      */
     private array $data;
 
@@ -40,7 +40,7 @@ class OnOffNotificationEvent implements ShouldBroadcast
     /**
      * イベントがブロードキャストされるチャンネルを取得します。
      *
-     * @return Channel|array<int, Channel>|array<int, string>
+     * @return Channel|array<int,Channel>|array<int,string>
      */
     public function broadcastOn(): Channel|array
     {
@@ -50,7 +50,7 @@ class OnOffNotificationEvent implements ShouldBroadcast
     /**
      * ブロードキャストのデータを取得します。
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function broadcastWith(): array
     {

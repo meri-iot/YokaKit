@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 
-class UpdateCycleTimeRequest extends FormRequest
+class SortGanttChartRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,8 +25,8 @@ class UpdateCycleTimeRequest extends FormRequest
     public function rules()
     {
         return [
-            'cycle_time' => 'required|numeric|min:2.000|max:86399.999',
-            'over_time' => 'required|numeric|min:2.001|max:86400|gt:cycle_time',
+            'order' => 'required|array|min:1',
+            'order.*' => 'required|int|exists:gantt_charts,gantt_chart_id',
         ];
     }
 }

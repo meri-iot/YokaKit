@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Services\Utility;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class StoreProcessRequest extends FormRequest
 {
@@ -20,14 +22,29 @@ class StoreProcessRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
         return [
             'process_name' => 'required|string|max:32|unique:processes,process_name',
             'plan_color' => 'required|string|color',
+            'count_switch' => 'required|boolean',
+            'range' => ['required', 'integer', Rule::in(Utility::ranges())],
             'remark' => 'max:256',
         ];
+    }
+
+    /**
+     * バリデーションのためのデータの準備
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // パラメータをマージ
+        $this->merge([
+            'count_switch' => !is_null($this->count_switch),
+        ]);
     }
 }

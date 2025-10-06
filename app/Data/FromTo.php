@@ -3,7 +3,7 @@
 namespace App\Data;
 
 use App\Services\Utility;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 
 /**
@@ -20,8 +20,7 @@ class FromTo extends Data
     public function __construct(
         public readonly Carbon $from,
         public readonly Carbon|null $to = null,
-    ) {
-    }
+    ) {}
 
     /**
      * 時間区間のスパンのミリ秒を取得する

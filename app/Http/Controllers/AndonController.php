@@ -59,7 +59,12 @@ class AndonController extends AbstractController
         $config = $this->service->andonConfig();
         $columns = array_combine(AndonColumnSize::getValues(), AndonColumnSize::getValues());
         $easing = array_combine(EasingType::getValues(), EasingType::getValues());
-        return view('andon.config', ['processes' => $processes, 'config' => $config, 'columns' => $columns, 'easing' => $easing]);
+        return view('andon.config', [
+            'processes' => $processes,
+            'config' => $config,
+            'columns' => $columns,
+            'easing' => $easing
+        ]);
     }
 
     /**

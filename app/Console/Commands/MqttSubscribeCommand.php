@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\SensorType;
 use App\Exceptions\ProductionException;
 use App\Services\BarcodeHistoryService;
+use App\Services\GanttChartService;
 use App\Services\OnOffService;
 use App\Services\ProductionHistoryService;
 use App\Services\ProductionService;
@@ -44,6 +44,7 @@ class MqttSubscribeCommand extends Command
      * @param ProductionHistoryService $productionHistoryService
      * @param SensorService $sensorService
      * @param OnOffService $onOffService
+     * @param GanttChartService $ganttChartService
      */
     public function __construct(
         private readonly RaspberryPiService $raspberryPiService,
@@ -51,7 +52,8 @@ class MqttSubscribeCommand extends Command
         private readonly BarcodeHistoryService $barcodeHistoryService,
         private readonly ProductionHistoryService $productionHistoryService,
         private readonly SensorService $sensorService,
-        private readonly OnOffService $onOffService
+        private readonly OnOffService $onOffService,
+        private readonly GanttChartService $ganttChartService
     ) {
         parent::__construct();
     }
@@ -65,11 +67,12 @@ class MqttSubscribeCommand extends Command
     {
         $mqtt = MQTT::connection();
         try {
-            $mqtt->subscribe('heartbeat', fn ($_, $message) => $this->subscribeHeartbeat(json_decode($message, true)), 1);
-            $mqtt->subscribe('production', fn ($_, $message) => $this->subscribeProduction(json_decode($message, true)), 2);
-            $mqtt->subscribe('barcode', fn ($_, $message) => $this->subscribeBarcode(json_decode($message, true)), 2);
-            $mqtt->subscribe('alarm', fn ($_, $message) => $this->subscribeAlarm(json_decode($message, true)), 2);
-            $mqtt->subscribe('onoff', fn ($_, $message) => $this->subscribeOnOff(json_decode($message, true)), 2);
+            $mqtt->subscribe('heartbeat', fn($_, $message) => $this->subscribeHeartbeat(json_decode($message, true)), 1);
+            $mqtt->subscribe('production', fn($_, $message) => $this->subscribeProduction(json_decode($message, true)), 2);
+            $mqtt->subscribe('barcode', fn($_, $message) => $this->subscribeBarcode(json_decode($message, true)), 2);
+            $mqtt->subscribe('alarm', fn($_, $message) => $this->subscribeAlarm(json_decode($message, true)), 2);
+            $mqtt->subscribe('onoff', fn($_, $message) => $this->subscribeOnOff(json_decode($message, true)), 2);
+            $mqtt->subscribe('gantt-chart', fn($_, $message) => $this->subscribeGanttChart(json_decode($message, true)), 2);
             $mqtt->loop(true);
             return Command::SUCCESS;
         } catch (Throwable $e) {
@@ -147,18 +150,18 @@ class MqttSubscribeCommand extends Command
     /**
      * センサーアラート通知用トピックの購読
      *
-     * @param array{pinNumber:int|string, sensorType: int, signal: bool, ipAddress: string, value: int|float} $data 通知データ
+     * @param array{pinNumber:int|string, signal: bool, ipAddress: string, value: int|float} $data 通知データ
      * @return void
      */
     private function subscribeAlarm(array $data)
     {
+        Log::debug('Alarm', $data);
         try {
             $pinNumber = $data['pinNumber'];
-            $sensorType = SensorType::fromValue($data['sensorType']);
             $signal = $data['signal'];
             $ipAddress = $data['ipAddress'];
             $value = $data['value'];
-            $this->sensorService->insert($pinNumber, $sensorType, $ipAddress, $signal, $value);
+            $this->sensorService->insert($pinNumber, $ipAddress, $signal, $value);
         } catch (Throwable $e) {
             Log::error($e->getMessage(), $e->getTrace());
         }
@@ -177,6 +180,24 @@ class MqttSubscribeCommand extends Command
             $pinNumber = $data['pinNumber'];
             $ipAddress = $data['ipAddress'];
             $this->onOffService->insert($isOn, $pinNumber, $ipAddress);
+        } catch (Throwable $e) {
+            Log::error($e->getMessage(), $e->getTrace());
+        }
+    }
+
+    /**
+     * ガントチャート用トピックの購読
+     *
+     * @param array{ipAddress: string, signal: bool, pinNumber: int|string} $data ガントチャートデータ
+     * @return void
+     */
+    private function subscribeGanttChart(array $data)
+    {
+        try {
+            $signal = $data['signal'];
+            $pinNumber = $data['pinNumber'];
+            $ipAddress = $data['ipAddress'];
+            $this->ganttChartService->insert($pinNumber, $ipAddress, $signal);
         } catch (Throwable $e) {
             Log::error($e->getMessage(), $e->getTrace());
         }

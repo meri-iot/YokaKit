@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
  * 生産ラインの作業者の更新
  *
  * @property integer $process_id 工程ID
- * @property array<int, array<string, mixed>> $lines 生産ラインデータ
+ * @property array<int, array<string,mixed>> $lines 生産ラインデータ
  */
 class UpdateLineWorkerRequest extends FormRequest
 {
@@ -26,7 +26,7 @@ class UpdateLineWorkerRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules(): array
     {
@@ -44,7 +44,7 @@ class UpdateLineWorkerRequest extends FormRequest
     /**
      * Undocumented function
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function attributes(): array
     {

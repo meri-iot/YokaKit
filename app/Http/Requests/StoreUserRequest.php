@@ -30,14 +30,14 @@ class StoreUserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
         return [
             'name' => 'required|string|min:1|max:255',
             'email' => 'required|string|min:3|max:255|email|unique:users,email',
-            'role' => ['required', 'integer', Rule::in(RoleType::getInstances())],
+            'role' => ['required', Rule::in(RoleType::getInstances())],
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required',
         ];

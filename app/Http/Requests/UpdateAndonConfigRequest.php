@@ -22,7 +22,7 @@ class UpdateAndonConfigRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function rules()
     {
@@ -48,6 +48,7 @@ class UpdateAndonConfigRequest extends FormRequest
             'is_show_time_operating_rate' => 'required|boolean',
             'is_show_performance_operating_rate' => 'required|boolean',
             'is_show_overall_equipment_effectiveness' => 'required|boolean',
+            'is_show_goal' => 'required|boolean',
         ];
     }
 
@@ -72,6 +73,7 @@ class UpdateAndonConfigRequest extends FormRequest
             'is_show_time_operating_rate' => !is_null($this->is_show_time_operating_rate),
             'is_show_performance_operating_rate' => !is_null($this->is_show_performance_operating_rate),
             'is_show_overall_equipment_effectiveness' => !is_null($this->is_show_overall_equipment_effectiveness),
+            'is_show_goal' => !is_null($this->is_show_goal),
         ]);
     }
 }
