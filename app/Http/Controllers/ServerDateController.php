@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Services\Utility;
-use Illuminate\Http\Request;
 
 /**
  * サーバー時刻コントローラー
@@ -19,12 +20,11 @@ class ServerDateController extends BaseController
     }
 
     /**
-     * Handle the incoming request.
+     * 現在のサーバー時刻を文字列で返す。
      *
-     * @param Request $request
-     * @return string|null
+     * @return string
      */
-    public function __invoke(Request $request): ?string
+    public function __invoke(): string
     {
         return Utility::format(Utility::now());
     }

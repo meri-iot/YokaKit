@@ -1,5 +1,5 @@
 {
-    "/js/app.js": "/js/app.js",
-    "/css/app.css": "/css/app.css",
-    "/js/chartjs-adapter-moment/chartjs-adapter-moment.js": "/js/chartjs-adapter-moment/chartjs-adapter-moment.js"
+    "/js/app.js": "/js/app.js?id=7be1f87b364d2b1f0e0cf9cc9b4ee272",
+    "/css/app.css": "/css/app.css?id=2dc0cf8de49384e20854ff8f01235e7b",
+    "/js/chartjs-adapter-moment/chartjs-adapter-moment.js": "/js/chartjs-adapter-moment/chartjs-adapter-moment.js?id=223c113d7b3c72476865746d7f7399de"
 }

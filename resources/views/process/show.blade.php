@@ -11,11 +11,7 @@
         @include('adminlte::partials.common.preloader')
         @php
             $history = $process->productionHistory;
-            $startTime = $lines
-                ->filter(fn($x) => $x->defective === false)
-                ->first()
-                ->productions->first()
-                ->at->format('Y-m-d H:i');
+            $startTime = $lines->filter(fn($x) => $x->defective === false)->first()->productions->first()->at->format('Y-m-d H:i');
         @endphp
         <div class="row">
             {{-- 生産グラフ --}}
@@ -92,7 +88,8 @@
                             <div class="col-auto mr-2">
                                 <h5>
                                     <span>
-                                        <i class="fa-solid fa-fw fa-square" style="color: {{ $line->chart_color }}"></i>
+                                        {{-- chart_colorはサニタイズ済み想定だが、念のためe()でエスケープ --}}
+                                        <i class="fa-solid fa-fw fa-square" style="color: {{ e($line->chart_color) }}"></i>
                                         <span>{{ $line->line_name }}：</span>
                                         <strong class="font-digit" id="production-line-{{ $line->production_line_id }}">&nbsp;</strong>
                                     </span>
@@ -119,6 +116,12 @@
                                 </h5>
                             </div>
                         @endisset
+                        {{-- ステータス --}}
+                        <div class="ml-auto">
+                            <h5 id="status-area">
+                                <span class="badge" id="production-status" style="font-size: 100%;"></span>
+                            </h5>
+                        </div>
                     </div>
                     <hr>
                     {{-- 指標 --}}
@@ -242,6 +245,12 @@
                                 {{ __('yokakit.notification') }}
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link @if ($tab === 'gantt-chart') active @endif" id="process-gantt-chart-tab" data-toggle="pill"
+                                href="#process-gantt-chart" role="tab" aria-controls="process-gantt-chart" aria-selected="false">
+                                {{ __('yokakit.gantt_chart') }}
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 <div class="card-body p-0">
@@ -276,6 +285,11 @@
                             aria-labelledby="process-on-off-tab">
                             {{-- 通知 --}}
                             <x-process.on-off :process="$process" />
+                        </div>
+                        <div class="tab-pane fade @if ($tab === 'gantt-chart') active show @endif" id="process-gantt-chart" role="tabpanel"
+                            aria-labelledby="process-gantt-chart-tab">
+                            {{-- ガントチャート --}}
+                            <x-process.gantt-chart :process="$process" />
                         </div>
                     </div>
                 </div>

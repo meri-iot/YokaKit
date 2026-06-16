@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
-use App\Enums\SensorType;
+use App\Http\Requests\Concerns\NormalizesBooleanInput;
 use App\Models\Process;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 /**
  * センサー追加リクエスト
@@ -15,27 +16,30 @@ use Illuminate\Validation\Rule;
  */
 class StoreSensorRequest extends FormRequest
 {
+    use NormalizesBooleanInput;
+
     /**
-     * Determine if the user is authorized to make this request.
+     * センサー追加操作の実行権限を判定する。
      *
-     * @return bool
+     * 管理者権限を持つユーザーのみ許可する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('admin');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * センサー追加リクエストのバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * 識別番号はラズパイ単位で一意に制約し、trigger は boolean を要求する。
+     *
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'raspberry_pi_id' => 'required|integer|exists:raspberry_pis,raspberry_pi_id',
-            'sensor_type' => ['required', 'integer', Rule::in(SensorType::getValues())],
-            'identification_number' => "required|integer|between:1,65535|unique:sensors,identification_number,NULL,sensor_id,raspberry_pi_id,{$this->raspberry_pi_id}",
+            'identification_number' => "required|integer|between:0,127|unique:sensors,identification_number,NULL,sensor_id,raspberry_pi_id,{$this->raspberry_pi_id}",
             'alarm_text' => 'required|max:128|string',
             'trigger' => 'required|boolean',
         ];
@@ -44,16 +48,21 @@ class StoreSensorRequest extends FormRequest
     /**
      * バリデーションのためのデータの準備
      *
+     * ルート情報と boolean 入力を正規化して検証データに統合する。
+     *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        /** @var Process */
         $process = $this->route('process');
+        if (!$process instanceof Process) {
+            return;
+        }
+
         // パラメータをマージ
         $this->merge([
             'process_id' => $process->process_id,
-            'trigger' => !is_null($this->trigger)
+            'trigger' => $this->normalizeBooleanInput('trigger'),
         ]);
     }
 }

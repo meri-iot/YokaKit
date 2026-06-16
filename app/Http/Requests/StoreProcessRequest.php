@@ -1,33 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\NormalizesBooleanInput;
+use App\Services\Utility;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
+/**
+ * 工程追加リクエスト
+ */
 class StoreProcessRequest extends FormRequest
 {
+    use NormalizesBooleanInput;
+
     /**
-     * Determine if the user is authorized to make this request.
+     * 工程追加操作の実行権限を判定する。
      *
-     * @return bool
+     * 管理者権限を持つユーザーのみ許可する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('admin');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * 工程追加リクエストのバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * 工程名の一意性、色指定、集計レンジ、備考文字数を検証する。
+     * 備考は未入力を許可しつつ、文字列のみを受け付ける。
+     *
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'process_name' => 'required|string|max:32|unique:processes,process_name',
             'plan_color' => 'required|string|color',
-            'remark' => 'max:256',
+            'count_switch' => 'required|boolean',
+            'range' => ['required', 'integer', Rule::in(Utility::ganttChartDisplayRangeMinutes())],
+            'remark' => 'nullable|string|max:256',
         ];
+    }
+
+    /**
+     * バリデーションのためのデータの準備
+     *
+     * count_switch を boolean として正規化し、
+     * 変換不能値はそのまま残してバリデーションで検出する。
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // パラメータをマージ
+        $this->merge([
+            'count_switch' => $this->normalizeBooleanInput('count_switch'),
+        ]);
     }
 }

@@ -1,6 +1,8 @@
+@props(['href', 'add', 'heads' => [], 'config' => [], 'id' => null])
+
 <div class="col-md-12">
     <x-adminlte-card>
-        <x-adminlte-datatable id="{{ Str::random(16) }}">
+        <x-adminlte-datatable id="{{ $id ?? Str::random(16) }}" :heads="$heads" :config="$config">
             {{ $slot }}
         </x-adminlte-datatable>
         @can('admin')

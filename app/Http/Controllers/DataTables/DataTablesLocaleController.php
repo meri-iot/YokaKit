@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\DataTables;
 
 use App\Http\Controllers\BaseController;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -21,12 +21,14 @@ class DataTablesLocaleController extends BaseController
     }
 
     /**
-     * Handle the incoming request.
+     * DataTablesの言語設定を現在ロケールに合わせて返す。
      *
-     * @param Request $request
-     * @return Response
+     * resources/lang/{locale}/datatables.php 相当の配列から app.locale のキーを参照し、
+     * 対応するDataTables文言配列を返却する。未定義ロケールの場合は404を返す。
+     *
+     * @return array<string, mixed>
      */
-    public function __invoke(Request $request)
+    public function __invoke(): array
     {
         $config = __('datatables');
         $locale = config('app.locale');

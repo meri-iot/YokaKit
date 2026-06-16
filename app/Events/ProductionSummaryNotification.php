@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Events;
 
-use App\Data\PayloadData;
-use App\Models\ProductionHistory;
+use App\Data\ProductionSummaryData;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -22,26 +23,25 @@ class ProductionSummaryNotification implements ShouldBroadcast
     /**
      * ブロードキャスト送信データ
      *
-     * @var array<string, mixed>
+     * @var array<string,mixed>
      */
     private array $data;
 
     /**
      * イベントインスタンスを作成します。
      *
-     * @param ProductionHistory $history
-     * @param PayloadData $payloadData
+     * @param ProductionSummaryData $data ブロードキャスト送信データ
      */
-    public function __construct(ProductionHistory $history, PayloadData $payloadData)
+    public function __construct(ProductionSummaryData $data)
     {
-        $this->data = $history->makeProductionSummary($payloadData);
+        $this->data = $data->toArray();
         Log::debug('Dispatch ProductionSummaryNotification', $this->data);
     }
 
     /**
      * イベントをブロードキャストするチャンネルを取得します。
      *
-     * @return Channel|array<int, Channel>|array<int, string>
+     * @return Channel|array<int,Channel>|array<int,string>
      */
     public function broadcastOn(): Channel|array
     {
@@ -51,7 +51,7 @@ class ProductionSummaryNotification implements ShouldBroadcast
     /**
      * ブロードキャストのデータを取得します。
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function broadcastWith(): array
     {

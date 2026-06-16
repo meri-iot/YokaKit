@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Exceptions\NoIndicatorException;
@@ -23,16 +25,18 @@ class SwitchPartNumberController extends BaseController
      */
     public function __construct(
         private readonly ProductionHistoryService $service
-    ) {
-    }
+    ) {}
 
     /**
-     * Handle the incoming request.
+     * 受信したリクエストを処理し、品番切り替えを実行する。
+     *
+     * 管理者権限を確認したうえで切り替え処理を呼び出し、切り替え不可または
+     * 対象データ不整合時には適切なHTTPエラーを返す。
      *
      * @param SwitchPartNumberRequestFromApi $request
      * @return Response
      */
-    public function __invoke(SwitchPartNumberRequestFromApi $request)
+    public function __invoke(SwitchPartNumberRequestFromApi $request): Response
     {
         $this->authorizeAdmin();
         try {

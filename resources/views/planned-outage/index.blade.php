@@ -7,14 +7,14 @@
     <div class="row">
         @php
             $heads = ['#', __('yokakit.target_name', ['target' => __('yokakit.planned_outage')]), __('yokakit.start_time'), __('yokakit.end_time')];
-            $colmns = [['visible' => false], null, null, null];
+            $columns = [['visible' => false], null, null, null];
             if (Gate::allows('admin')) {
                 array_push($heads, ['label' => '', 'no-export' => true, 'width' => 5]);
-                array_push($colmns, ['orderable' => false, 'searchable' => false]);
+                array_push($columns, ['orderable' => false, 'searchable' => false]);
             }
             $config = [
                 'order' => [[2, 'asc']],
-                'columns' => $colmns,
+                'columns' => $columns,
                 'language' => ['url' => route('datatables')],
             ];
         @endphp
@@ -37,13 +37,13 @@
                             <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.planned_outage')]) }}</strong>
                             <x-adminlte-card class="mt-4">
                                 <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.planned_outage')]) }}</strong>
-                                <p class="mt-1 ml-2 mb-0">{{ $plannedOutage->planned_outage_name }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $plannedOutage->planned_outage_name }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.start_time') }}</strong>
-                                <p class="mt-1 ml-2">{{ $plannedOutage->formatStartTime() }}</p>
+                                <p class="ml-2 mt-1">{{ $plannedOutage->formatStartTime() }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.end_time') }}</strong>
-                                <p class="mt-1 ml-2 mb-0">{{ $plannedOutage->formatEndTime() }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $plannedOutage->formatEndTime() }}</p>
                             </x-adminlte-card>
                         </x-modal-delete>
                     @endcan

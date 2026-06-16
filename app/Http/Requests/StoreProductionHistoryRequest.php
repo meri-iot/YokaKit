@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Enums\ProductionStatus;
+use App\Http\Requests\Concerns\NormalizesBooleanInput;
 use App\Models\Process;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,22 +19,24 @@ use Illuminate\Validation\Rule;
  */
 class StoreProductionHistoryRequest extends FormRequest
 {
+    use NormalizesBooleanInput;
+
     /**
-     * Determine if the user is authorized to make this request.
+     * 生産履歴データ保存の実行可否を判定する。
      *
-     * @return bool
+     * API経由の受付を想定し、認可は上位層で制御する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * 生産履歴データ保存のバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'part_number_id' => [
@@ -52,15 +57,26 @@ class StoreProductionHistoryRequest extends FormRequest
     /**
      * バリデーションのためのデータの準備
      *
+     * ルートの工程IDを入力へ統合し、changeover の真偽値に応じて
+     * status を RUNNING / CHANGEOVER に正規化する。
+     *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        /** @var Process */
         $process = $this->route('process');
+        if (!$process instanceof Process) {
+            return;
+        }
+
+        $isChangeover = $this->normalizeBooleanInput('changeover') === true;
+        $goal = $this->input('goal');
+
         $this->merge([
             'process_id' => $process->process_id,
-            'status' => is_null($this->changeover) ?  ProductionStatus::RUNNING() : ProductionStatus::CHANGEOVER(),
+            'part_number_id' => (int) $this->part_number_id,
+            'goal' => is_null($goal) ? null : (int) $goal,
+            'status' => $isChangeover ? ProductionStatus::CHANGEOVER() : ProductionStatus::RUNNING(),
         ]);
     }
 }

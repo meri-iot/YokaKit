@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SortLineRequest;
@@ -15,14 +17,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 
 /**
- * ラインコントローラー
+ * 作業コントローラー
  */
 class LineController extends AbstractController
 {
     /**
      * コンストラクタ
      *
-     * @param LineService $service ラインサービス
+     * @param LineService $service 作業サービス
      */
     public function __construct(private readonly LineService $service)
     {
@@ -51,7 +53,7 @@ class LineController extends AbstractController
     // }
 
     /**
-     * Show the form for creating a new resource.
+     * 作業追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @return View
@@ -75,7 +77,7 @@ class LineController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 作業を新規登録する。管理者のみ使用可能。
      *
      * @param StoreLineRequest $request リクエスト
      * @param Process $process 工程
@@ -83,6 +85,7 @@ class LineController extends AbstractController
      */
     public function store(StoreLineRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.show', ['process' => $process, 'tab' => 'line']);
@@ -101,7 +104,7 @@ class LineController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * 作業編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param Line $line
@@ -126,7 +129,7 @@ class LineController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * 作業を更新する。管理者のみ使用可能。
      *
      * @param UpdateLineRequest $request リクエスト
      * @param Process $process 工程
@@ -135,13 +138,14 @@ class LineController extends AbstractController
      */
     public function update(UpdateLineRequest $request, Process $process, Line $line): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->update($request, $line);
         return $this->redirectWithUpdate($result, 'process.show', ['process' => $process, 'tab' => 'line']);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 作業を削除する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param Line $line
@@ -156,7 +160,7 @@ class LineController extends AbstractController
     }
 
     /**
-     * ラインの並べ替えをフォーム画面を表示する。
+     * 作業の並べ替えフォーム画面を表示する。
      *
      * @param Process $process
      * @return View
@@ -169,7 +173,7 @@ class LineController extends AbstractController
     }
 
     /**
-     * ラインの並べ替えを行う。
+     * 作業の並べ替えを行う。
      *
      * @param SortLineRequest $request
      * @param Process $process

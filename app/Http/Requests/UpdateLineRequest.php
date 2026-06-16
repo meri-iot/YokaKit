@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\NormalizesBooleanInput;
 use App\Models\Line;
 use App\Models\Process;
 use Illuminate\Foundation\Http\FormRequest;
@@ -9,37 +12,40 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 /**
- * ライン更新リクエスト
+ * 作業設定更新リクエスト
  *
- * @property integer $line_id ラインID
+ * 作業の名称・色・ピン番号・担当者・不良作業設定を更新します。
+ * 管理者権限が必要です。
+ *
+ * @property integer $line_id 作業ID
  * @property integer $process_id 工程ID
  * @property integer $raspberry_pi_id ラズパイID
  */
 class UpdateLineRequest extends FormRequest
 {
+    use NormalizesBooleanInput;
+
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
+     * ユーザーがこのリクエストを実行する権限があるかを判定
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('admin');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * 本リクエストに適用される検証ルール
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         $rule = [
             'line_name' => "required|string|max:32|unique:lines,line_name,{$this->line_id},line_id,process_id,{$this->process_id}",
             'chart_color' => 'required|string|color',
             'raspberry_pi_id' => 'required|integer|exists:raspberry_pis,raspberry_pi_id',
-            'worker_id' => "nullable|integer|exists:workers,worker_id|unique:lines,worker_id,{$this->process_id},process_id,raspberry_pi_id,{$this->raspberry_pi_id}",
-            'pin_number' => "required|integer|min:2|max:27|unique:lines,pin_number,{$this->line_id},line_id,raspberry_pi_id,{$this->raspberry_pi_id}",
+            'worker_id' => "nullable|integer|exists:workers,worker_id|unique:lines,worker_id,{$this->line_id},line_id,raspberry_pi_id,{$this->raspberry_pi_id}",
+            'pin_number' => "required|integer|min:0|max:127|unique:lines,pin_number,{$this->line_id},line_id,raspberry_pi_id,{$this->raspberry_pi_id}",
             'defective' => 'required|boolean',
             'parent_id' => [
                 'required_if:defective,true',
@@ -62,23 +68,30 @@ class UpdateLineRequest extends FormRequest
     /**
      * バリデーションのためのデータの準備
      *
+     * ルート情報と boolean 入力を正規化し、
+     * defective の値に応じて排他的な項目を整形する。
+     *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        /** @var Process */
         $process = $this->route('process');
-        /** @var Line */
-        $line =  $this->route('line');
-        $defective = !is_null($this->defective);
+        $line = $this->route('line');
+
+        if (!($process instanceof Process) || !($line instanceof Line)) {
+            return;
+        }
+
+        $defective = $this->normalizeBooleanInput('defective');
+        $isDefective = $defective === true;
 
         // パラメータをマージ
         $this->merge([
             'process_id' => $process->process_id,
-            'line_id' => (string) $line->line_id,
+            'line_id' => $line->line_id,
             'defective' => $defective,
-            'worker_id' => $defective ? null : $this->worker_id,
-            'parent_id' => $defective ? $this->parent_id : null,
+            'worker_id' => $isDefective ? null : $this->worker_id,
+            'parent_id' => $isDefective ? $this->parent_id : null,
         ]);
     }
 }

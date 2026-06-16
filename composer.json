@@ -2,7 +2,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "keywords": [
+        "framework",
+        "laravel"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
@@ -17,6 +20,7 @@
         "laravel/slack-notification-channel": "^2.4",
         "laravel/tinker": "^2.7",
         "laravel/ui": "^3.4",
+        "maatwebsite/excel": "^3.1",
         "php-mqtt/laravel-client": "^1.0",
         "pusher/pusher-php-server": "^7.0",
         "spatie/laravel-data": "^3.6"
@@ -61,7 +65,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/dusk"
+            ]
         }
     },
     "config": {

@@ -9,11 +9,11 @@
         </div>
         <div class="col-sm-8">
             <div class="float-right">
-                @isset($breadcrumbs)
+                @if (isset($breadcrumbs))
                     {{ Breadcrumbs::render(Route::currentRouteName(), $breadcrumbs) }}
                 @else
                     {{ Breadcrumbs::render(Route::currentRouteName()) }}
-                @endisset
+                @endif
             </div>
         </div>
     </div>

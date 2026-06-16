@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Exceptions\NoIndicatorException;
@@ -33,7 +35,7 @@ class SwitchController extends BaseController
     }
 
     /**
-     * Display a listing of the resource.
+     * 品番切り替え・作業者入れ替え画面を表示する。
      *
      * @param  Request $request
      * @return View
@@ -56,7 +58,7 @@ class SwitchController extends BaseController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 品番切り替えを実行する。
      *
      * @param  \App\Http\Requests\StoreProductionHistoryRequest $request
      * @param Process $process 工程

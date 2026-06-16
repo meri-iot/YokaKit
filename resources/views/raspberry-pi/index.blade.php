@@ -6,14 +6,21 @@
     @include('adminlte::partials.common.preloader')
     <div class="row">
         @php
-            $heads = ['#', __('yokakit.target_name', ['target' => __('yokakit.raspberry_pi')]), __('yokakit.ip_address'), __('yokakit.cpu_temperature') . __('yokakit.unit_temperature'), __('yokakit.cpu_utilization') . __('yokakit.unit_rate'), __('yokakit.update_date')];
-            $colmns = [['visible' => false], null, null, null, null, null];
+            $heads = [
+                '#',
+                __('yokakit.target_name', ['target' => __('yokakit.raspberry_pi')]),
+                __('yokakit.ip_address'),
+                __('yokakit.cpu_temperature') . __('yokakit.unit_temperature'),
+                __('yokakit.cpu_utilization') . __('yokakit.unit_rate'),
+                __('yokakit.update_date'),
+            ];
+            $columns = [['visible' => false], null, null, null, null, null];
             if (Gate::allows('admin')) {
                 array_push($heads, ['label' => '', 'no-export' => true, 'width' => 5]);
-                array_push($colmns, ['orderable' => false, 'searchable' => false]);
+                array_push($columns, ['orderable' => false, 'searchable' => false]);
             }
             $config = [
-                'columns' => $colmns,
+                'columns' => $columns,
                 'language' => ['url' => route('datatables')],
             ];
         @endphp
@@ -38,7 +45,7 @@
                             <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.raspberry_pi')]) }}</strong>
                             <x-adminlte-card class="mt-4">
                                 <strong>{{ __('yokakit.ip_address') }}</strong>
-                                <p class="mt-1 ml-2 mb-0">{{ $raspberryPi->ip_address }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $raspberryPi->ip_address }}</p>
                             </x-adminlte-card>
                         </x-modal-delete>
                     @endcan

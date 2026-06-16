@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOnOffRequest;
@@ -37,7 +39,7 @@ class OnOffController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * ON-OFFメッセージ一覧画面を表示する。
      *
      * @param Process $process
      * @return View
@@ -48,7 +50,7 @@ class OnOffController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ON-OFFメッセージ追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @return View
@@ -67,7 +69,7 @@ class OnOffController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ON-OFFメッセージを新規登録する。管理者のみ使用可能。
      *
      * @param StoreOnOffRequest $request リクエスト
      * @param Process $process 工程
@@ -75,13 +77,14 @@ class OnOffController extends AbstractController
      */
     public function store(StoreOnOffRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.show', ['process' => $process, 'tab' => 'on-off']);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * ON-OFFメッセージ編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param OnOff $onOff
@@ -102,7 +105,7 @@ class OnOffController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * ON-OFFメッセージを更新する。管理者のみ使用可能。
      *
      * @param UpdateOnOffRequest $request リクエスト
      * @param Process $process 工程
@@ -111,13 +114,14 @@ class OnOffController extends AbstractController
      */
     public function update(UpdateOnOffRequest $request, Process $process, OnOff $onOff): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->update($request, $onOff);
         return $this->redirectWithUpdate($result, 'process.show', ['process' => $process, 'tab' => 'on-off']);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ON-OFFメッセージを削除する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param OnOff $onOff

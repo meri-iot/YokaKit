@@ -6,14 +6,19 @@
     @include('adminlte::partials.common.preloader')
     <div class="row">
         @php
-            $heads = ['#', __('yokakit.identification_number'), __('yokakit.target_name', ['target' => __('yokakit.worker')]), __('yokakit.mac_address')];
-            $colmns = [['visible' => false], null, null, null];
+            $heads = [
+                '#',
+                __('yokakit.identification_number'),
+                __('yokakit.target_name', ['target' => __('yokakit.worker')]),
+                __('yokakit.mac_address'),
+            ];
+            $columns = [['visible' => false], null, null, null];
             if (Gate::allows('admin')) {
                 array_push($heads, ['label' => '', 'no-export' => true, 'width' => 5]);
-                array_push($colmns, ['orderable' => false, 'searchable' => false]);
+                array_push($columns, ['orderable' => false, 'searchable' => false]);
             }
             $config = [
-                'columns' => $colmns,
+                'columns' => $columns,
                 'language' => ['url' => route('datatables')],
             ];
         @endphp
@@ -35,10 +40,10 @@
                             <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.worker')]) }}</strong>
                             <x-adminlte-card class="mt-4">
                                 <strong>{{ __('yokakit.identification_number') }}</strong>
-                                <p class="mt-1 ml-2">{{ $worker->identification_number }}</p>
+                                <p class="ml-2 mt-1">{{ $worker->identification_number }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.worker')]) }}</strong>
-                                <p class="mt-1 ml-2 mb-0">{{ $worker->worker_name }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $worker->worker_name }}</p>
                             </x-adminlte-card>
                         </x-modal-delete>
                     @endcan

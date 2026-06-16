@@ -10,53 +10,48 @@ window.Payload = class Payload extends Indicator {
     /**
      * コンストラクタ
      *
-     * @param {Payload} payload
+     * @param {Object} payload サーバーから受信した生産ペイロードオブジェクト
      */
     constructor(payload) {
 
-        super(payload.cycleTimeMs, payload.overTimeMs)
+        super(payload.cycleTimeMs, payload.overTimeMs);
 
+        // Payload 固有のプロパティ
         /** @type {number} 工程ID */
         this.processId = payload.processId;
         /** @type {string} 品番名 */
         this.partNumberName = payload.partNumberName;
         /** @type {Moment} 開始時刻 */
         this.start = moment(payload.start);
-        /** @type {{string: Number}} 不良品数 */
-        this.defectiveCounts = payload.defectiveCounts;
+        /** @type {number} 目標値 */
+        this.goal = payload.goal;
 
+        // Indicator 継承プロパティ（super()で未設定のもの）
         /** @type {number} ラインID */
-        super.lineId = payload.lineId;
+        this.lineId = payload.lineId;
         /** @type {Moment} 時刻 */
-        super.at = moment(payload.at);
+        this.at = moment(payload.at);
         /** @type {number} 生産数 */
-        super.count = payload.count;
+        this.count = payload.count;
         /** @type {'RUNNING'|'CHANGEOVER'|'BREAKDOWN'|'COMPLETE'} ステータス */
-        super.statusName = payload.statusName;
+        this.statusName = payload.statusName;
         /** @type {boolean} 計画停止時間中かどうか */
-        super.inPlannedOutage = payload.inPlannedOutage;
-        /** @type {number} サイクルタイム[ms] */
-        super.cycleTimeMs = payload.cycleTimeMs;
+        this.inPlannedOutage = payload.inPlannedOutage;
+        /** @type {boolean} カウント切替 */
+        this.countSwitch = payload.countSwitch;
+        /** @type {Object<string, number>} 不良品数（ライン別） */
+        this.defectiveCounts = payload.defectiveCounts;
         /** @type {number} 操業時間[ms] */
-        super.workingTime = payload.workingTime;
+        this.workingTime = payload.workingTime;
         /** @type {number} 負荷時間[ms] */
-        super.loadingTime = payload.loadingTime;
+        this.loadingTime = payload.loadingTime;
         /** @type {number} 稼働時間[ms] */
-        super.operatingTime = payload.operatingTime;
+        this.operatingTime = payload.operatingTime;
         /** @type {number} 正味稼働時間[ms] */
-        super.netTime = payload.netTime;
+        this.netTime = payload.netTime;
         /** @type {number} チョコ停回数 */
-        super.breakdownCount = payload.breakdownCount;
+        this.breakdownCount = payload.breakdownCount;
         /** @type {number} 段取り替え自動復帰回数 */
-        super.autoResumeCount = payload.autoResumeCount;
-    }
-
-    /**
-     * 不良品数を取得する
-     *
-     * @returns {number} 不良品数
-     */
-    defectiveCount() {
-        return Object.values(this.defectiveCounts).sum(x => x) || 0;
+        this.autoResumeCount = payload.autoResumeCount;
     }
 };

@@ -10,38 +10,41 @@ window.Production = class Production extends Indicator {
     /**
      * コンストラクタ
      *
-     * @param {*} production
+     * @param {Object} production サーバーから取得した生産レコードオブジェクト
      * @param {number} cycleTimeMs サイクルタイム[ms]
-     * @param {number} overTimeMs サイクルタイム[ms]
+     * @param {number} overTimeMs オーバータイム[ms]
+     * @param {boolean} countSwitch カウント切替
      */
-    constructor(production, cycleTimeMs, overTimeMs) {
+    constructor(production, cycleTimeMs, overTimeMs, countSwitch) {
 
         super(cycleTimeMs, overTimeMs);
 
         /** @type {number} ラインID */
-        super.lineId = production.production_line_id;
+        this.lineId = production.production_line_id;
         /** @type {Moment} 時刻 */
-        super.at = moment(production.at);
+        this.at = moment(production.at);
         /** @type {number} 生産数 */
-        super.count = production.count;
+        this.count = production.count;
         /** @type {'RUNNING'|'CHANGEOVER'|'BREAKDOWN'|'COMPLETE'} ステータス */
-        super.statusName = production.status_name;
+        this.statusName = production.status_name;
         /** @type {boolean} 計画停止時間中かどうか */
-        super.inPlannedOutage = production.in_planned_outage;
+        this.inPlannedOutage = production.in_planned_outage;
+        /** @type {boolean} カウント切替 */
+        this.countSwitch = countSwitch;
         /** @type {number} 操業時間[ms] */
-        super.workingTime = production.working_time;
+        this.workingTime = production.working_time;
         /** @type {number} 負荷時間[ms] */
-        super.loadingTime = production.loading_time;
+        this.loadingTime = production.loading_time;
         /** @type {number} 稼働時間[ms] */
-        super.operatingTime = production.operating_time;
+        this.operatingTime = production.operating_time;
         /** @type {number} 正味稼働時間[ms] */
-        super.netTime = production.net_time;
+        this.netTime = production.net_time;
         /** @type {number} チョコ停回数 */
-        super.breakdownCount = production.breakdown_count;
+        this.breakdownCount = production.breakdown_count;
         /** @type {number} 段取り替え自動復帰回数 */
-        super.autoResumeCount = production.auto_resume_count;
+        this.autoResumeCount = production.auto_resume_count;
 
-        /** @type {number} 不良品数 */
+        /** @type {number} 不良品数（サーバー集計済み合計値） */
         this.defectives = production.defective_count;
     }
 

@@ -44,7 +44,7 @@ class RegisterController extends BaseController
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param array<string, mixed> $data
+     * @param array<string,mixed> $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
@@ -59,7 +59,7 @@ class RegisterController extends BaseController
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param array<string, mixed> $data
+     * @param array<string,mixed> $data
      * @return \App\Models\User
      */
     protected function create(array $data)

@@ -2,7 +2,7 @@
 
 <div class="row">
     <div class="col-md-12">
-        <form action="{{ $action }}" method="POST" autocomplete="off" body-class="p-0">
+        <form action="{{ $action }}" method="POST" autocomplete="off">
             @csrf
             <x-adminlte-card title="{{ $title }}">
                 {{ $slot }}

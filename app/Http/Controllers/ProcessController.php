@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProcessRequest;
 use App\Http\Requests\UpdateProcessRequest;
 use App\Models\Process;
 use App\Services\ProcessService;
+use App\Services\Utility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -35,7 +38,7 @@ class ProcessController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * 工程一覧画面を表示する。
      *
      * @return View
      */
@@ -46,30 +49,34 @@ class ProcessController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 工程追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @return View
      */
     public function create(): View
     {
         $this->authorizeAdmin();
-        return view('process.create');
+        $rangeOptions = Utility::ganttChartDisplayRangeOptions();
+        return view('process.create', [
+            'rangeOptions' => $rangeOptions,
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 工程を新規登録する。管理者のみ使用可能。
      *
      * @param StoreProcessRequest $request リクエスト
      * @return RedirectResponse
      */
     public function store(StoreProcessRequest $request): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.index');
     }
 
     /**
-     * Display the specified resource.
+     * 工程詳細画面を表示する。
      *
      * @param Process $process 工程
      * @return View
@@ -84,7 +91,7 @@ class ProcessController extends AbstractController
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * 工程編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @return View
@@ -93,11 +100,15 @@ class ProcessController extends AbstractController
     {
         $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
-        return view('process.edit', ['process' => $process]);
+        $rangeOptions = Utility::ganttChartDisplayRangeOptions();
+        return view('process.edit', [
+            'process' => $process,
+            'rangeOptions' => $rangeOptions,
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * 工程を更新する。管理者のみ使用可能。
      *
      * @param UpdateProcessRequest $request リクエスト
      * @param Process $process 工程
@@ -105,13 +116,14 @@ class ProcessController extends AbstractController
      */
     public function update(UpdateProcessRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->update($request, $process);
         return $this->redirectWithUpdate($result, 'process.show', ['process' => $process]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 工程を削除する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @return RedirectResponse

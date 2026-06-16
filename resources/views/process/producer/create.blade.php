@@ -17,7 +17,8 @@
                     <tr>
                         <td class="align-middle">{{ $line->line_name }}</td>
                         <td class="align-middle">
-                            <i class="fa-solid fa-fw fa-square-full" style="color: {{ $line->chart_color }}"></i>
+                            {{-- chart_colorはサニタイズ済み想定だが、念のためe()でエスケープ --}}
+                            <i class="fa-solid fa-fw fa-square-full" style="color: {{ e($line->chart_color) }}"></i>
                         </td>
                         <td class="p-0">
                             <x-select name="worker_id[]" label="" :options="$workerOptions" selected="{{ $line->worker_id }}" />

@@ -44,7 +44,16 @@ return [
                 'useTLS' => env('PUSHER_SCHEME', 'https') === 'https',
             ],
             'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
+                // ローカルの WebSocket サーバー宛ては proxy をバイパスしないと、
+                // 外部の HTTP_PROXY 経由で 127.0.0.1 へ接続しようとして失敗する。
+                'proxy' => array_filter([
+                    'http' => env('HTTP_PROXY') ?: null,
+                    'https' => env('HTTPS_PROXY') ?: null,
+                    'no' => array_values(array_filter(array_map(
+                        static fn (string $host) => trim($host),
+                        explode(',', env('NO_PROXY', '127.0.0.1,localhost,::1'))
+                    ))),
+                ], static fn ($value, $key) => $key === 'no' || !is_null($value), ARRAY_FILTER_USE_BOTH),
             ],
         ],
 

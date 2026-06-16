@@ -7,10 +7,10 @@
         <div class="col-md-12">
             <x-adminlte-card>
                 <strong>{{ __('yokakit.name') }}</strong>
-                <p class="text-muted mt-1 ml-2">{{ $user->name }}</p>
+                <p class="text-muted ml-2 mt-1">{{ $user->name }}</p>
                 <hr>
                 <strong>{{ __('yokakit.email') }}</strong>
-                <p class="text-muted mt-1 ml-2">{{ $user->email }}</p>
+                <p class="text-muted ml-2 mt-1">{{ $user->email }}</p>
 
                 <a class="btn btn-primary" href="{{ route('user.edit') }}" role="button">
                     {{ __('yokakit.target_edit', ['target' => __('yokakit.profile')]) }}
@@ -26,8 +26,8 @@
                         <x-input name="token" value="{{ session('token') }}" label="{{ __('yokakit.webapi_token') }}" />
                         <x-adminlte-button class="btn-primary" type="submit" label="{{ __('yokakit.generate_token') }}" />
                     </form>
-                @endcan
-            </x-adminlte-card>
+                </x-adminlte-card>
+            @endcan
         </div>
     </div>
 @endsection

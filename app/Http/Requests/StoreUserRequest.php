@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Enums\RoleType;
@@ -18,28 +20,30 @@ use Illuminate\Validation\Rule;
 class StoreUserRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * ユーザー追加操作の実行権限を判定する。
      *
-     * @return bool
+     * システム管理者権限を持つユーザーのみ許可する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('system');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * ユーザー追加リクエストのバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * メールアドレス一意性、権限値、パスワード確認一致を検証する。
+     *
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|string|min:1|max:255',
             'email' => 'required|string|min:3|max:255|email|unique:users,email',
-            'role' => ['required', 'integer', Rule::in(RoleType::getInstances())],
+            'role' => ['required', 'integer', Rule::in(RoleType::getValues())],
             'password' => 'required|string|min:8|confirmed',
-            'password_confirmation' => 'required',
+            'password_confirmation' => 'required|string',
         ];
     }
 }

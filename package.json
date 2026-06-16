@@ -7,7 +7,8 @@
         "watch-poll": "mix watch -- --watch-options-poll=1000",
         "hot": "mix watch --hot",
         "prod": "npm run production",
-        "production": "mix --production"
+        "production": "mix --production",
+        "test:js": "jest"
     },
     "devDependencies": {
         "@fortawesome/fontawesome-free": "^6.1.2",
@@ -24,6 +25,7 @@
         "daterangepicker": "^3.1.0",
         "dseg": "^0.46.0",
         "icheck-bootstrap": "^3.0.1",
+        "jest": "^29.7.0",
         "jquery": "^3.6.0",
         "jquery-ui": "^1.13.2",
         "laravel-echo": "^1.13.1",

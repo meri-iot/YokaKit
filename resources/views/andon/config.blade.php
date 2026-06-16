@@ -5,7 +5,7 @@
 @section('content')
     @include('adminlte::partials.common.preloader')
     <x-form-edit action="{{ route('andon.update') }}" back="{{ route('home') }}">
-        <x-input name="row_count" value="{!! $config->row_count !!}" label="{{ __('yokakit.row_count') }}" icon="grip-lines" required />
+        <x-input name="row_count" value="{{ $config->row_count }}" label="{{ __('yokakit.row_count') }}" icon="grip-lines" required />
         <x-select name="column_count" label="{{ __('yokakit.column_count') }}" :options="$columns" icon="grip-lines-vertical"
             selected="{{ $config->column_count }}" required />
         <div class="form-group required">
@@ -16,13 +16,8 @@
                         style="opacity: @if (!$process->andonLayout->is_display) 0.25 @endif">
                         <div class="form-control bg-secondary mb-2">
                             <div class="float-left pr-2">
-                                @if ($process->andonLayout->is_display)
-                                    <input class="checkbox" name="layouts[{{ $process->process_id }}][display]" type="checkbox"
-                                        value="{{ $process->process_id }}" checked>
-                                @else
-                                    <input class="checkbox" name="layouts[{{ $process->process_id }}][display]" type="checkbox"
-                                        value="{{ $process->process_id }}">
-                                @endif
+                                <input class="checkbox" name="layouts[{{ $process->process_id }}][display]" type="checkbox"
+                                    value="{{ $process->process_id }}" @checked($process->andonLayout->is_display)>
                             </div>
                             <div class="text-truncate">{{ $process->process_name }}</div>
                             <input name="layouts[{{ $process->process_id }}][process_id]" type="hidden" value="{{ $process->process_id }}">
@@ -31,11 +26,12 @@
                 @endforeach
             </div>
         </div>
-        <x-input name="auto_play_speed" value="{!! $config->auto_play_speed !!}" label="{{ __('yokakit.auto_play_speed') }}{{ __('yokakit.unit_millisecond') }}"
-            icon="play" required />
-        <x-input name="slide_speed" value="{!! $config->slide_speed !!}" label="{{ __('yokakit.slide_speed') }}{{ __('yokakit.unit_millisecond') }}"
+        <x-input name="auto_play_speed" value="{{ $config->auto_play_speed }}"
+            label="{{ __('yokakit.auto_play_speed') }}{{ __('yokakit.unit_millisecond') }}" icon="play" required />
+        <x-input name="slide_speed" value="{{ $config->slide_speed }}" label="{{ __('yokakit.slide_speed') }}{{ __('yokakit.unit_millisecond') }}"
             icon="forward" required />
         <x-select name="easing" label="{{ __('yokakit.easing') }}" :options="$easing" icon="ellipsis" selected="{{ $config->easing }}" required />
+        <x-input name="font_ratio" value="{{ $config->font_ratio }}" label="{{ __('yokakit.font_ratio') }}" icon="font" required />
         <x-select name="item_column_count" label="{{ __('yokakit.item_column_count') }}" :options="$columns" icon="grip-lines-vertical"
             selected="{{ $config->item_column_count }}" required />
         <div class="row">
@@ -81,6 +77,9 @@
                 <x-input-switch name="is_show_overall_equipment_effectiveness" label="{{ __('yokakit.is_show_overall_equipment_effectiveness') }}"
                     checked="{{ $config->is_show_overall_equipment_effectiveness }}" />
             </div>
+            <div class="col-{{ 12 / $config->item_column_count }} d-flex justify-content display-item">
+                <x-input-switch name="is_show_goal" label="{{ __('yokakit.is_show_goal') }}" checked="{{ $config->is_show_goal }}" />
+            </div>
         </div>
     </x-form-edit>
 @endsection
@@ -103,7 +102,7 @@
                 }
             });
 
-            let currentColumn = @json($config).column_count;
+            let currentColumn = @json($config->column_count);
             $('#column_count').on('change', (event) => {
                 const nextColumn = $(event.target).val();
                 $('.sortable-process')
@@ -112,7 +111,7 @@
                 currentColumn = nextColumn;
             });
 
-            let currentItemColumn = @json($config).item_column_count;
+            let currentItemColumn = @json($config->item_column_count);
             $('#item_column_count').on('change', (event) => {
                 const nextColumn = $(event.target).val();
                 $('.display-item')

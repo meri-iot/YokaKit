@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartNumberRequest;
@@ -35,7 +37,7 @@ class PartNumberController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * 品番一覧画面を表示する。
      *
      * @return View
      */
@@ -46,7 +48,7 @@ class PartNumberController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 品番追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @return View
      */
@@ -57,13 +59,14 @@ class PartNumberController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 品番を新規登録する。管理者のみ使用可能。
      *
      * @param StorePartNumberRequest $request リクエスト
      * @return RedirectResponse
      */
     public function store(StorePartNumberRequest $request): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'part-number.index');
     }
@@ -80,7 +83,7 @@ class PartNumberController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * 品番編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param PartNumber $partNumber
      * @return View
@@ -92,7 +95,7 @@ class PartNumberController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * 品番を更新する。管理者のみ使用可能。
      *
      * @param UpdatePartNumberRequest $request リクエスト
      * @param PartNumber $partNumber
@@ -100,12 +103,13 @@ class PartNumberController extends AbstractController
      */
     public function update(UpdatePartNumberRequest $request, PartNumber $partNumber): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->update($request, $partNumber);
         return $this->redirectWithUpdate($result, 'part-number.index');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 品番を削除する。管理者のみ使用可能。
      *
      * @param PartNumber $partNumber
      * @return RedirectResponse

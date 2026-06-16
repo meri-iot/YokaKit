@@ -49,7 +49,7 @@
     <div class="row">
         <div class="col-lg-6">
             <x-adminlte-card title="{{ __('yokakit.process') }}" body-class="card-body-height">
-                <x-adminlte-select class="large" name="select-processes">
+                <x-adminlte-select class="large" id="select-processes" name="select-processes">
                     <x-adminlte-options :options="$processOptions" selected="{{ $initialId }}" />
                 </x-adminlte-select>
                 <div class="mt-4 pb-2">
@@ -145,7 +145,7 @@
             <x-adminlte-card title="{{ __('yokakit.part_number') }}" body-class="card-body-height">
                 <form id="switch-form" action="#" method="POST">
                     @csrf
-                    <x-adminlte-select class="large" name="part_number_id" />
+                    <x-adminlte-select class="large" id="part_number_id" name="part_number_id" />
                     <x-adminlte-input id="goal" name="goal" igroup-size="lg" label="{{ __('yokakit.goal') }}" enable-old-support>
                         <x-slot name="prependSlot">
                             <div class="input-group-text bg-light">

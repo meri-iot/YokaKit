@@ -1,6 +1,6 @@
 @extends('components.header', ['breadcrumbs' => $process])
 
-@section('title', __('yokakit.sort'))
+@section('title', __('yokakit.target_sort', ['target' => __('yokakit.line')]))
 
 @section('content')
     <div class="row">
@@ -10,13 +10,15 @@
                 <x-adminlte-card body-class="p-0">
                     <table class="mb-1 table" id="sortable">
                         <thead>
-                            <th class="border-top-0 border-bottom-0"></th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.target_name', ['target' => __('yokakit.line')]) }}</th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.color') }}</th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.worker') }}</th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.raspberry_pi') }}</th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.pin_number') }}</th>
-                            <th class="border-top-0 border-bottom-0">{{ __('yokakit.failure') }}</th>
+                            <tr>
+                                <th class="border-top-0 border-bottom-0"></th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.target_name', ['target' => __('yokakit.line')]) }}</th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.color') }}</th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.worker') }}</th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.raspberry_pi') }}</th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.pin_number') }}</th>
+                                <th class="border-top-0 border-bottom-0">{{ __('yokakit.failure') }}</th>
+                            </tr>
                         </thead>
                         <tbody>
                             @foreach ($process->raspberryPis as $raspberryPi)
@@ -29,11 +31,12 @@
                                     </td>
                                     <td class="align-middle">{{ $raspberryPi->pivot->line_name }}</td>
                                     <td class="align-middle">
+                                        {{-- chart_colorはサニタイズ済み想定だが、念のためe()でエスケープ --}}
                                         <i class="fa-solid fa-fw fa-square-full"
-                                            style="padding-top:1px; color: {{ $raspberryPi->pivot->chart_color }}"></i>
+                                            style="padding-top:1px; color: {{ e($raspberryPi->pivot->chart_color) }}"></i>
                                     </td>
                                     @if ($raspberryPi->pivot->defective)
-                                        <td class="align-middle">{{ $raspberryPi->pivot->parentLine->worker?->worker_name }}</td>
+                                        <td class="align-middle">{{ $raspberryPi->pivot->parentLine?->worker?->worker_name }}</td>
                                     @else
                                         <td class="align-middle">{{ $raspberryPi->pivot->worker?->worker_name }}</td>
                                     @endif

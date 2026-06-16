@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreWorkerRequest;
@@ -35,7 +37,7 @@ class WorkerController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * 作業者一覧画面を表示する。
      *
      * @return View
      */
@@ -46,7 +48,7 @@ class WorkerController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 作業者追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @return View
      */
@@ -57,13 +59,14 @@ class WorkerController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 作業者を新規登録する。管理者のみ使用可能。
      *
      * @param StoreWorkerRequest $request
      * @return RedirectResponse
      */
     public function store(StoreWorkerRequest $request): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'worker.index');
     }
@@ -80,7 +83,7 @@ class WorkerController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * 作業者編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Worker $worker
      * @return View
@@ -92,7 +95,7 @@ class WorkerController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * 作業者を更新する。管理者のみ使用可能。
      *
      * @param UpdateWorkerRequest $request
      * @param Worker $worker
@@ -100,12 +103,13 @@ class WorkerController extends AbstractController
      */
     public function update(UpdateWorkerRequest $request, Worker $worker): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->update($request, $worker);
         return $this->redirectWithUpdate($result, 'worker.index');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 作業者を削除する。管理者のみ使用可能。
      *
      * @param Worker $worker
      * @return RedirectResponse

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCycleTimeRequest;
@@ -46,9 +48,9 @@ class CycleTimeController extends AbstractController
     // }
 
     /**
-     * Show the form for creating a new resource.
+     * サイクルタイム追加画面を表示する。
      *
-     * @param Process $process 工程 工程
+     * @param Process $process 工程
      * @return View
      */
     public function create(Process $process): View
@@ -60,14 +62,15 @@ class CycleTimeController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * サイクルタイムを追加する。
      *
      * @param StoreCycleTimeRequest $request リクエスト
-     * @param Process $process 工程 工程
+     * @param Process $process 工程
      * @return RedirectResponse
      */
     public function store(StoreCycleTimeRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.show', ['process' => $process, 'tab' => 'part-number']);
@@ -85,10 +88,10 @@ class CycleTimeController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * サイクルタイム編集画面を表示する。
      *
      * @param CycleTime $cycleTime サイクルタイム
-     * @param Process $process 工程 工程
+     * @param Process $process 工程
      * @return View
      */
     public function edit(Process $process, CycleTime $cycleTime): View
@@ -99,24 +102,25 @@ class CycleTimeController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * サイクルタイムを更新する。
      *
      * @param UpdateCycleTimeRequest $request リクエスト
-     * @param Process $process 工程 工程
+     * @param Process $process 工程
      * @param CycleTime $cycleTime サイクルタイム
      * @return RedirectResponse
      */
     public function update(UpdateCycleTimeRequest $request, Process $process, CycleTime $cycleTime): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->update($request, $cycleTime);
         return $this->redirectWithUpdate($result, 'process.show', ['process' => $process, 'tab' => 'part-number']);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * サイクルタイムを削除する。
      *
-     * @param Process $process 工程 工程
+     * @param Process $process 工程
      * @param CycleTime $cycleTime サイクルタイム
      * @return RedirectResponse
      */

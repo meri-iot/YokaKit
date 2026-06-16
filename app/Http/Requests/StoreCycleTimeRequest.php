@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Models\Process;
@@ -14,24 +16,26 @@ use Illuminate\Support\Facades\Gate;
 class StoreCycleTimeRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * 追加操作の実行権限を判定する。
      *
-     * @return bool
+     * 管理者権限を持つユーザーのみ許可する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('admin');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * サイクルタイム追加リクエストのバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * 同一工程内での品番重複を禁止し、時間項目の範囲と前後関係を検証する。
+     *
+     * @return array<string, string>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'part_number_id' => "required|exists:part_numbers,part_number_id|unique:cycle_times,part_number_id,NULL,cycle_time_id,process_id,{$this->process_id}",
+            'part_number_id' => "required|integer|exists:part_numbers,part_number_id|unique:cycle_times,part_number_id,NULL,cycle_time_id,process_id,{$this->process_id}",
             'cycle_time' => 'required|numeric|min:2.000|max:86399.999',
             'over_time' => 'required|numeric|min:2.001|max:86400|gt:cycle_time',
         ];
@@ -42,11 +46,12 @@ class StoreCycleTimeRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        /** @var Process */
         $process = $this->route('process');
-        // パラメータをマージ
-        $this->merge(['process_id' => $process->process_id]);
+        if ($process instanceof Process) {
+            // ルートの工程IDを内部的に付与し、工程単位ユニーク制約の条件に利用する。
+            $this->merge(['process_id' => $process->process_id]);
+        }
     }
 }

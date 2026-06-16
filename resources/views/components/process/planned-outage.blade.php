@@ -1,7 +1,7 @@
 <div class="position-relative float-right pr-2" style="top:-2.75rem; height: 0;">
     @can('admin')
         @if ($process->isStopped())
-            <x-button-add class="pt-0 pb-0" href="{{ route('process.planned-outage.create', ['process' => $process]) }}" />
+            <x-button-add class="pb-0 pt-0" href="{{ route('process.planned-outage.create', ['process' => $process]) }}" />
         @endif
     @endcan
 </div>
@@ -26,7 +26,7 @@
                 <td class="align-middle">{{ $plannedOutage->formatEndTime() }}</td>
                 @can('admin')
                     @if ($process->isStopped())
-                        <td class="text-nowrap text-right">
+                        <td class="text-nowrap text-right align-middle">
                             {{-- 計画停止時間削除ボタン --}}
                             <x-button-delete target="planned_outage_{{ $plannedOutage->planned_outage_id }}" />
                         </td>
@@ -36,13 +36,13 @@
                             <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.process_planned_outage')]) }}</strong>
                             <x-adminlte-card class="mt-4">
                                 <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.planned_outage')]) }}</strong>
-                                <p class="mt-1 ml-2">{{ $plannedOutage->planned_outage_name }}</p>
+                                <p class="ml-2 mt-1">{{ $plannedOutage->planned_outage_name }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.start_time') }}</strong>
-                                <p class="mt-1 ml-2">{{ $plannedOutage->formatStartTime() }}</p>
+                                <p class="ml-2 mt-1">{{ $plannedOutage->formatStartTime() }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.end_time') }}</strong>
-                                <p class="mt-1 ml-2 mb-0">{{ $plannedOutage->formatEndTime() }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $plannedOutage->formatEndTime() }}</p>
                             </x-adminlte-card>
                         </x-modal-delete>
                     @endif

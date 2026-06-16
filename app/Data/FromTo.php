@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Data;
 
 use App\Services\Utility;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
+use JsonException;
 use Spatie\LaravelData\Data;
 
 /**
@@ -20,14 +23,13 @@ class FromTo extends Data
     public function __construct(
         public readonly Carbon $from,
         public readonly Carbon|null $to = null,
-    ) {
-    }
+    ) {}
 
     /**
      * 時間区間のスパンのミリ秒を取得する
      *
      * @param Carbon|null $date toがnullである場合に埋める日付
-     * @return integer 区間のミリ秒
+     * @return int 区間のミリ秒
      */
     public function span(Carbon|null $date = null): int
     {
@@ -45,12 +47,13 @@ class FromTo extends Data
     /**
      * JSONに変換する
      *
-     * @param integer $options json_encodeオプション
+     * @param int $options json_encodeオプション
      * @return string JSON文字列
+     * @throws JsonException JSONへの変換に失敗した場合
      */
     public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), $options);
+        return json_encode($this->toArray(), $options | JSON_THROW_ON_ERROR);
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Events;
 
 use App\Repositories\SensorEventRepository;
@@ -21,14 +23,14 @@ class SensorAlarmNotification implements ShouldBroadcast
     /**
      * ブロードキャスト送信データ
      *
-     * @var array<string, mixed>
+     * @var array<string,mixed>
      */
     private array $data;
 
     /**
      * イベントインスタンスを作成します。
      *
-     * @param integer $sensorEventId センサーイベントID
+     * @param int $sensorEventId センサーイベントID
      */
     public function __construct(int $sensorEventId)
     {
@@ -40,7 +42,7 @@ class SensorAlarmNotification implements ShouldBroadcast
     /**
      * イベントをブロードキャストするチャンネルを取得します。
      *
-     * @return Channel|array<int, Channel>|array<int, string>
+     * @return Channel|array<int,Channel>|array<int,string>
      */
     public function broadcastOn(): Channel|array
     {
@@ -50,7 +52,7 @@ class SensorAlarmNotification implements ShouldBroadcast
     /**
      * ブロードキャストのデータを取得します。
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     public function broadcastWith(): array
     {

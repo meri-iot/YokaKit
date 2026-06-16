@@ -1,16 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Exceptions\NoIndicatorException;
+use App\Exports\ProductionHistoryExport;
 use App\Http\Requests\StoreProductionHistoryRequest;
 use App\Models\Process;
 use App\Models\ProductionHistory;
 use App\Services\ProductionHistoryService;
+use App\Services\Utility;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * 生産履歴コントローラー
@@ -34,22 +41,28 @@ class ProductionHistoryController extends AbstractController
      */
     public function name(): string
     {
-        return __('yokakit.production');
+        return __('yokakit.production_history');
     }
 
     /**
-     * Display a listing of the resource.
+     * 生産履歴一覧画面を表示する。
      *
+     * @param Process $process 工程
+     * @param Request $request
      * @return View
      */
-    public function index(Process $process): View
+    public function index(Process $process, Request $request): View
     {
-        $histories = $this->service->histories($process->process_id);
-        return view('process.production.index', ['process' => $process, 'histories' => $histories]);
+        $partNumberName = $request->query('partNumberName');
+        $startDate = $request->query('startDate');
+        $endDate = $request->query('endDate');
+        $histories = $this->service->histories($process->process_id, $partNumberName, $startDate, $endDate);
+        $partNumbers = $this->service->productedPartNumberOptions($process);
+        return view('process.production.index', ['process' => $process, 'histories' => $histories, 'partNumbers' => $partNumbers]);
     }
 
     /**
-     * Display the specified resource.
+     * 生産履歴詳細画面を表示する。
      *
      * @param Process $process 工程
      * @param  \App\Models\ProductionHistory $history
@@ -62,7 +75,7 @@ class ProductionHistoryController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 生産開始フォーム画面を表示する。
      *
      * @param Process $process 工程
      * @return View
@@ -74,7 +87,7 @@ class ProductionHistoryController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 生産開始(品番切り替え)を実行する。
      *
      * @param StoreProductionHistoryRequest $request リクエスト
      * @param Process $process 工程
@@ -100,6 +113,29 @@ class ProductionHistoryController extends AbstractController
             ));
         }
         return $route;
+    }
+
+    /**
+     * 指定期間の生産履歴を削除する。管理者のみ使用可能。
+     *
+     * @param Process $process 工程
+     * @param Request $request 削除リクエスト
+     * @return RedirectResponse
+     */
+    public function destroy(Process $process, Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin();
+        $dateRange = (string)$request->input('date-range', '');
+        [$start, $end] = array_pad(array_map('trim', explode('~', $dateRange, 2)), 2, null);
+        $start = ($start === '') ? null : $start;
+        $end = ($end === '') ? null : $end;
+        $deleted = $this->service->destroyHistories($request->input('checkbox'));
+        return $this->redirectWithDestroy($deleted != 0, 'production.index', [
+            'process' => $process,
+            'partNumberName' => $request->input('part_number_name'),
+            'startDate' => $start,
+            'endDate' => $end,
+        ]);
     }
 
     /**
@@ -166,5 +202,18 @@ class ProductionHistoryController extends AbstractController
             $route->with('toast_danger', __('yokakit.failed_toast2', ['action' => __('yokakit.start_production')]));
         }
         return $route;
+    }
+
+    /**
+     * 生産履歴のエクセルファイルをダウンロードする
+     *
+     * @param Process $process
+     * @param ProductionHistory $history
+     * @return BinaryFileResponse
+     */
+    public function download(Process $process, ProductionHistory $history): BinaryFileResponse
+    {
+        $filename = "{$process->process_name}-{$history->part_number_name}-{$history->production_history_id}";
+        return Excel::download(new ProductionHistoryExport($history), Utility::sanitizeFileName($filename) . '.xlsx');
     }
 }

@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Data\PayloadData;
 use App\Events\ProductionSummaryNotification;
 use App\Repositories\PayloadRepository;
+use App\Repositories\ProductionHistoryRepository;
 use App\Repositories\ProductionLineRepository;
 use App\Repositories\ProductionRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -25,10 +27,10 @@ class PlanCountJob implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param integer $productionLineId
-     * @param integer $cycleTimeMs
+     * @param int $productionLineId
+     * @param int $cycleTimeMs
      * @param Carbon $planDate
-     * @param boolean $isChangeover
+     * @param bool $isChangeover
      * @param string $jobKey
      */
     public function __construct(
@@ -50,10 +52,19 @@ class PlanCountJob implements ShouldQueue
     /**
      * Execute the job.
      *
+     * Queue Worker が handle 引数へ依存解決した Repository を注入する。
+     *
+     * @param ProductionLineRepository $productionLineRepository
+     * @param PayloadRepository $payloadRepository
+     * @param ProductionRepository $productionRepository
      * @return void
      */
-    public function handle()
-    {
+    public function handle(
+        ProductionLineRepository $productionLineRepository,
+        PayloadRepository $payloadRepository,
+        ProductionRepository $productionRepository,
+        ProductionHistoryRepository $productionHistoryRepository,
+    ): void {
         Log::debug('Execute PlanCountJob', [
             'planDate' => Utility::format($this->planDate),
             'productionLineId' => $this->productionLineId,
@@ -62,49 +73,73 @@ class PlanCountJob implements ShouldQueue
             'jobKey' => $this->jobKey,
         ]);
 
-        DB::transaction(function () {
+        DB::transaction(function () use (
+            $productionLineRepository,
+            $payloadRepository,
+            $productionRepository,
+            $productionHistoryRepository,
+        ) {
 
-            /** @var ProductionLineRepository */
-            $productionLineRepository = App::make(ProductionLineRepository::class);
-            /** @var PayloadRepository */
-            $payloadRepository = App::make(PayloadRepository::class);
-            /** @var ProductionRepository */
-            $productionRepository = App::make(ProductionRepository::class);
-
-            // 指定した生産ラインIDを取得してなかったら終了
+            // 指定した生産ラインが取得できない場合は例外を送出する。
             $productionLine = $productionLineRepository->find($this->productionLineId, ['productionHistory', 'payload']);
-            Utility::throwIfNullException($productionLine);
+            Utility::ensureModelExists($productionLine);
 
             // 計画値ジョブキーを取得
             $payload = $productionLine->payload;
-            $jobKey = $payload->getPayloadData()->jobKey;
+            $payloadData = $payload->getPayloadData();
+            $jobKey = $payloadData->jobKey;
 
             // 生産履歴
             $history = $productionLine->productionHistory;
 
-            if ($jobKey === $this->jobKey) {
+            if ($jobKey === $this->jobKey && !$payloadData->isComplete) {
+                if ($this->cycleTimeMs <= 0) {
+                    Log::warning('Skip PlanCountJob re-dispatch because cycleTimeMs is invalid.', [
+                        'productionLineId' => $this->productionLineId,
+                        'cycleTimeMs' => $this->cycleTimeMs,
+                        'jobKey' => $this->jobKey,
+                    ]);
+                    return;
+                }
 
                 // ペイロードを更新
                 $payloadData = $payloadRepository->updatePayload(
                     $payload,
-                    fn (PayloadData $x) => $x->update($this->planDate)
+                    fn(PayloadData $x) => $x->update($this->planDate)
                 );
 
                 // ペイロードを書き直す
                 $production = $productionRepository->save($productionLine->production_line_id, $payloadData);
-                Utility::throwIfNullException($production);
+                Utility::ensureModelExists($production);
 
-                // 指標となるラインの場合は通知
-                $productionLine->indicator && ProductionSummaryNotification::dispatch($history, $payloadData);
+                // 通知はコミット後に行い、未コミットデータを参照しないようにする。
+                if ($productionLine->indicator) {
+                    DB::afterCommit(static function () use ($productionHistoryRepository, $history, $payloadData): void {
+                        ProductionSummaryNotification::dispatch($productionHistoryRepository->makeProductionSummary($history, $payloadData));
+                    });
+                }
 
-                // 次の計画値カウントアップタイミングを取得
-                $delay = $this->planDate->copy()->addMilliseconds($this->nextPlanCountDelay($payloadData));
-                // 計画値カウントジョブを登録
-                PlanCountJob::dispatch($productionLine->production_line_id, $this->cycleTimeMs, $delay, $this->isChangeover, $this->jobKey)->delay($delay);
-            } else {
-                Log::debug('Job Key is mismatch', ['partNumber' => $history->part_number_name, 'old' => $this->jobKey, 'new' => $jobKey]);
+                // 次回時刻は計画時刻ベースで算出し、遅延時のみ周期単位で先送りする。
+                $delay = $this->nextPlanDate($payloadData, Utility::now());
+                // 次の計画値カウントジョブはコミット後に登録する。
+                PlanCountJob::dispatch($productionLine->production_line_id, $this->cycleTimeMs, $delay, $this->isChangeover, $this->jobKey)
+                    ->delay($delay)
+                    ->afterCommit();
             }
         });
+    }
+
+    private function nextPlanDate(PayloadData $payloadData, Carbon $now): Carbon
+    {
+        $next = $this->planDate->copy()->addMilliseconds($this->nextPlanCountDelay($payloadData));
+        if ($next->greaterThan($now)) {
+            return $next;
+        }
+
+        $lagMs = $next->diffInMilliseconds($now);
+        $skipTicks = intdiv($lagMs, $this->cycleTimeMs) + 1;
+
+        return $next->addMilliseconds($skipTicks * $this->cycleTimeMs);
     }
 
     private function nextPlanCountDelay(PayloadData $payloadData): int
@@ -112,7 +147,8 @@ class PlanCountJob implements ShouldQueue
         if ($this->isChangeover) {
             return $this->cycleTimeMs;
         } else {
-            return $this->cycleTimeMs - ($payloadData->operatingTime % $this->cycleTimeMs);
+            $remaining = $this->cycleTimeMs - ($payloadData->operatingTime % $this->cycleTimeMs);
+            return $remaining === 0 ? $this->cycleTimeMs : $remaining;
         }
     }
 }

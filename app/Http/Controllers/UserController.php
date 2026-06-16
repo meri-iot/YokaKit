@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Enums\RoleType;
@@ -38,7 +40,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * ユーザー一覧画面を表示する。システム管理者のみ使用可能。
      *
      * @return View
      */
@@ -50,31 +52,32 @@ class UserController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ユーザー追加フォーム画面を表示する。システム管理者のみ使用可能。
      *
      * @return View
      */
     public function create(): View
     {
         $this->authorizeSystem();
-        $roles = array_combine(RoleType::getValues(), array_map(fn ($x) => $x->description, RoleType::getInstances()));
+        $roles = array_combine(RoleType::getValues(), array_map(fn($x) => $x->description, RoleType::getInstances()));
         return view('user.create', ['roles' => $roles]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ユーザーを新規登録する。システム管理者のみ使用可能。
      *
      * @param StoreUserRequest $request
      * @return RedirectResponse
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
+        $this->authorizeSystem();
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'user.index');
     }
 
     /**
-     * Display the specified resource.
+     * 自分のプロフィール画面を表示する。
      *
      * @return View
      */
@@ -84,7 +87,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * 自分のプロフィール編集画面を表示する。
      *
      * @return View
      */
@@ -94,7 +97,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ユーザーを削除する。システム管理者のみ使用可能。
      *
      * @param User $user
      * @return RedirectResponse
@@ -112,7 +115,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * 自分のプロフィールを更新する。
      *
      * @param UpdateProfileRequest $request
      * @return RedirectResponse

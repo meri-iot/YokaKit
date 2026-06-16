@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Logging;
 
 use Illuminate\Log\Logger;
@@ -40,7 +42,7 @@ class CustomizeFormatter
         // MemoryUsageProcessorを使うとextra.memory_usageが使えるようになる
         $mup = new MemoryUsageProcessor();
 
-        /** @var array<int, StreamHandler> */
+        /** @var array<int,StreamHandler> */
         $handlers = $logger->getHandlers();
         foreach ($handlers as $handler) {
             $handler->setFormatter($lineFormatter);
@@ -56,8 +58,8 @@ class CustomizeFormatter
     /**
      * Undocumented function
      *
-     * @param array<string, mixed> $record
-     * @return array<string, mixed>
+     * @param array<string,mixed> $record
+     * @return array<string,mixed>
      */
     public function addExtraFields(array $record): array
     {

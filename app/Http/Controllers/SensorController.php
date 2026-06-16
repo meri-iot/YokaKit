@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSensorRequest;
@@ -7,6 +9,7 @@ use App\Http\Requests\UpdateSensorRequest;
 use App\Models\Process;
 use App\Models\Sensor;
 use App\Services\SensorService;
+use App\Services\Utility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -47,7 +50,7 @@ class SensorController extends AbstractController
     // }
 
     /**
-     * Show the form for creating a new resource.
+     * アラームセンサー追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process
      * @return View
@@ -57,16 +60,16 @@ class SensorController extends AbstractController
         $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $raspberryPiOptions = $this->service->raspberryPiOptions();
-        $sensorTypes = $this->service->sensorTypeOptions();
+        $pinOptions = Utility::pinNumberOptions();
         return view('process.alarm.create', [
             'process' => $process,
             'raspberryPiOptions' => $raspberryPiOptions,
-            'sensorTypes' => $sensorTypes,
+            'pinOptions' => $pinOptions,
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * アラームセンサーを新規登録する。管理者のみ使用可能。
      *
      * @param StoreSensorRequest $request リクエスト
      * @param Process $process
@@ -74,6 +77,7 @@ class SensorController extends AbstractController
      */
     public function store(StoreSensorRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.show', ['process' => $process, 'tab' => 'alarm']);
@@ -92,7 +96,7 @@ class SensorController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * アラームセンサー編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param Sensor $sensor
@@ -100,18 +104,20 @@ class SensorController extends AbstractController
      */
     public function edit(Process $process, Sensor $sensor): View
     {
+        $this->authorizeAdmin();
+        $this->throwExceptionIfRunning($process);
         $raspberryPiOptions = $this->service->raspberryPiOptions();
-        $sensorTypes = $this->service->sensorTypeOptions();
+        $pinOptions = Utility::pinNumberOptions();
         return view('process.alarm.edit', [
             'process' => $process,
             'sensor' => $sensor,
             'raspberryPiOptions' => $raspberryPiOptions,
-            'sensorTypes' => $sensorTypes,
+            'pinOptions' => $pinOptions,
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * アラームセンサーを更新する。管理者のみ使用可能。
      *
      * @param UpdateSensorRequest $request リクエスト
      * @param Process $process 工程
@@ -120,13 +126,14 @@ class SensorController extends AbstractController
      */
     public function update(UpdateSensorRequest $request, Process $process, Sensor $sensor): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->update($request, $sensor);
         return $this->redirectWithUpdate($result, 'process.show', ['process' => $process, 'tab' => 'alarm']);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * アラームセンサーを削除する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param Sensor $sensor

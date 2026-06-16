@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Models\Process;
@@ -14,21 +16,23 @@ use Illuminate\Support\Facades\Gate;
 class StoreProcessPlannedOutageRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * 生産時の計画停止時間追加操作の実行権限を判定する。
      *
-     * @return bool
+     * 管理者権限を持つユーザーのみ許可する。
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Gate::check('admin');
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * 生産時の計画停止時間追加リクエストのバリデーションルールを返す。
      *
-     * @return array<string, mixed>
+     * 同一工程内で同じ計画停止時間の重複登録を禁止する。
+     *
+     * @return array<string,mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'planned_outage_id' => "required|integer|exists:planned_outages,planned_outage_id|unique:process_planned_outages,planned_outage_id,NULL,process_planned_outage_id,process_id,{$this->process_id}",
@@ -38,12 +42,18 @@ class StoreProcessPlannedOutageRequest extends FormRequest
     /**
      * バリデーションのためのデータの準備
      *
+     * ルートパラメータの工程IDを入力へ統合し、
+     * 工程単位のユニーク制約に利用できるようにする。
+     *
      * @return void
      */
     protected function prepareForValidation()
     {
-        /** @var Process */
         $process = $this->route('process');
+        if (!$process instanceof Process) {
+            return;
+        }
+
         // パラメータをマージ
         $this->merge(['process_id' => $process->process_id]);
     }

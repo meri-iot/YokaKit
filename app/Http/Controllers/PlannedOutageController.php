@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePlannedOutageRequest;
@@ -35,7 +37,7 @@ class PlannedOutageController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * 計画停止時間一覧画面を表示する。
      *
      * @return View
      */
@@ -46,7 +48,7 @@ class PlannedOutageController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 計画停止時間追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @return View
      */
@@ -57,7 +59,7 @@ class PlannedOutageController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 計画停止時間を新規登録する。管理者のみ使用可能。
      *
      * @param StorePlannedOutageRequest $request リクエスト
      * @return RedirectResponse
@@ -81,7 +83,7 @@ class PlannedOutageController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * 計画停止時間編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param PlannedOutage $plannedOutage
      * @return View
@@ -93,7 +95,7 @@ class PlannedOutageController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * 計画停止時間を更新する。管理者のみ使用可能。
      *
      * @param UpdatePlannedOutageRequest $request リクエスト
      * @param PlannedOutage $plannedOutage
@@ -101,12 +103,13 @@ class PlannedOutageController extends AbstractController
      */
     public function update(UpdatePlannedOutageRequest $request, PlannedOutage $plannedOutage): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->update($request, $plannedOutage);
         return $this->redirectWithUpdate($result, 'planned-outage.index');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 計画停止時間を削除する。管理者のみ使用可能。
      *
      * @param PlannedOutage $plannedOutage
      * @return RedirectResponse

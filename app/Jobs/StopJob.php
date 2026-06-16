@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Data\PayloadData;
@@ -7,13 +9,12 @@ use App\Events\ProductionSummaryNotification;
 use App\Repositories\PayloadRepository;
 use App\Repositories\ProductionHistoryRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,33 +44,33 @@ class StopJob implements ShouldQueue
     /**
      * 生産停止ジョブを実行する。
      *
+     * @param ProductionHistoryRepository $productionHistoryRepository
+     * @param PayloadRepository $payloadRepository
      * @return void
      */
-    public function handle()
-    {
+    public function handle(
+        ProductionHistoryRepository $productionHistoryRepository,
+        PayloadRepository $payloadRepository,
+    ): void {
         Log::info('Execute Stop Job', [
             'date' => Utility::format($this->date),
             'productionHistoryId' => $this->productionHistoryId,
         ]);
-        DB::transaction(function () {
-
-            /** @var ProductionHistoryRepository */
-            $productionHistoryRepository = App::make(ProductionHistoryRepository::class);
-            /** @var PayloadRepository */
-            $payloadRepository = App::make(PayloadRepository::class);
-
+        DB::transaction(function () use ($productionHistoryRepository, $payloadRepository): void {
             $history = $productionHistoryRepository->find($this->productionHistoryId, ['productionLines']);
-            Utility::throwIfNullException($history);
+            Utility::ensureModelExists($history);
 
             foreach ($history->productionLines as $productionLine) {
                 $payloadData = $payloadRepository->updatePayload(
                     $productionLine,
-                    fn (PayloadData $x) => $x->complete($this->date)
+                    fn(PayloadData $x) => $x->complete($this->date)
                 );
-                // $result = $payloadRepository->delete($productionLine->production_line_id);
-                // Utility::throwIfException($productionLine, $result);
+
+                // コミット確定後にイベントをdispatchする
                 if ($productionLine->indicator === true && $this->isDispatchEvent === true) {
-                    ProductionSummaryNotification::dispatch($history, $payloadData);
+                    DB::afterCommit(static function () use ($productionHistoryRepository, $history, $payloadData): void {
+                        ProductionSummaryNotification::dispatch($productionHistoryRepository->makeProductionSummary($history, $payloadData));
+                    });
                 }
             }
         });

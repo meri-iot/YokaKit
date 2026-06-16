@@ -1,15 +1,17 @@
 <script>
     $(() => {
-        const parentForm = $('select[name="parent_id"]').parent().parent();
-        const workerForm = $('select[name="worker_id"]').parent().parent();
-        const defective = @json($line?->defective);
+        const parentForm = $('select[name="parent_id"]').closest('.form-group, .mb-3, .col-md-12');
+        const workerForm = $('select[name="worker_id"]').closest('.form-group, .mb-3, .col-md-12');
+        const defective = !!@json($line?->defective);
         const old = @json(old('defective'));
 
-        let toggle = (defective === true) || (old != null);
+        let toggle = defective || (old != null);
         if (toggle) {
             parentForm.removeClass('d-none');
+            workerForm.addClass('d-none');
         } else {
             workerForm.removeClass('d-none');
+            parentForm.addClass('d-none');
         }
 
         $('input[name="defective"]').on('switchChange.bootstrapSwitch', (e) => {

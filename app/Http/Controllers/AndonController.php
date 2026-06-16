@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Enums\AndonColumnSize;
@@ -7,6 +9,7 @@ use App\Enums\EasingType;
 use App\Http\Requests\UpdateAndonConfigRequest;
 use App\Services\AndonService;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -37,33 +40,40 @@ class AndonController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * アンドン表示画面を表示する。
      *
      * @return View
      */
     public function index(): View
     {
         $processes = $this->service->processes();
-        $config = $this->service->andonConfig();
+        $config = $this->service->andonConfig($this->currentUserId());
         return view('home', ['processes' => $processes, 'config' => $config]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * アンドン設定編集画面を表示する。
      *
      * @return View
      */
     public function edit(): View
     {
         $processes = $this->service->processes();
-        $config = $this->service->andonConfig();
+        $config = $this->service->andonConfig($this->currentUserId());
         $columns = array_combine(AndonColumnSize::getValues(), AndonColumnSize::getValues());
         $easing = array_combine(EasingType::getValues(), EasingType::getValues());
-        return view('andon.config', ['processes' => $processes, 'config' => $config, 'columns' => $columns, 'easing' => $easing]);
+        return view('andon.config', [
+            'processes' => $processes,
+            'config' => $config,
+            'columns' => $columns,
+            'easing' => $easing
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * アンドン設定を更新する。
+     *
+     * 更新を試行し、結果に応じてトースト付きでホームへリダイレクトする。
      *
      * @param  \App\Http\Requests\UpdateAndonConfigRequest $request
      * @return RedirectResponse
@@ -71,11 +81,29 @@ class AndonController extends AbstractController
     public function update(UpdateAndonConfigRequest $request): RedirectResponse
     {
         try {
-            $this->service->update($request);
+            $this->service->update($request, $this->currentUserId());
             return $this->redirectWithUpdate(true, 'home');
         } catch (Exception $e) {
             Log::error($e->getMessage(), $e->getTrace());
             return $this->redirectWithUpdate(false, 'home');
         }
+    }
+
+    /**
+     * 認証済みユーザー ID を返す。
+     *
+     * auth ミドルウェア下での利用を前提にしつつ、想定外の未認証を例外化する。
+     *
+     * @throws AuthorizationException
+     */
+    private function currentUserId(): int
+    {
+        $userId = auth()->id();
+
+        if (!is_int($userId)) {
+            throw new AuthorizationException();
+        }
+
+        return $userId;
     }
 }

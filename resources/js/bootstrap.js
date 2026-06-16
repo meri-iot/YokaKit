@@ -17,6 +17,8 @@ try {
     require('slick-carousel');
 } catch (e) { }
 
+window.moment.locale('ja');
+
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
  * to our Laravel back-end. This library automatically handles sending the
@@ -52,14 +54,21 @@ import Echo from 'laravel-echo';
 
 window.Pusher = require('pusher-js');
 
+// 配信元の URL と .env の両方を見て、HTTP/HTTPS の混在や別ホスト配信に追従する。
+const websocketScheme = process.env.MIX_PUSHER_SCHEME || window.location.protocol.replace(':', '') || 'http';
+const websocketHost = process.env.MIX_PUSHER_HOST || window.location.hostname;
+const websocketPort = process.env.MIX_PUSHER_PORT || (websocketScheme === 'https' ? 443 : 6001);
+const websocketForceTls = websocketScheme === 'https';
+
 window.Echo = new Echo({
     broadcaster: 'pusher',
     key: process.env.MIX_PUSHER_APP_KEY,
     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
-    wsHost: window.location.hostname,
-    wsPort: process.env.MIX_PUSHER_PORT,
-    forceTLS: false,
+    wsHost: websocketHost,
+    wsPort: websocketPort,
+    wssPort: websocketPort,
+    forceTLS: websocketForceTls,
     disableStats: true,
-    enabledTransports: ['ws'],
+    enabledTransports: websocketForceTls ? ['wss'] : ['ws', 'wss'],
     authEndpoint: process.env.MIX_PUSHER_AUTH_URL,
 });

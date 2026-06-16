@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProcessPlannedOutageRequest;
@@ -46,7 +48,7 @@ class ProcessPlannedOutageController extends AbstractController
     // }
 
     /**
-     * Show the form for creating a new resource.
+     * 工程計画停止時間の追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @return View
@@ -60,7 +62,7 @@ class ProcessPlannedOutageController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 工程計画停止時間を新規登録する。管理者のみ使用可能。
      *
      * @param StoreProcessPlannedOutageRequest $request リクエスト
      * @param Process $process 工程
@@ -68,6 +70,7 @@ class ProcessPlannedOutageController extends AbstractController
      */
     public function store(StoreProcessPlannedOutageRequest $request, Process $process): RedirectResponse
     {
+        $this->authorizeAdmin();
         $this->throwExceptionIfRunning($process);
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'process.show', ['process' => $process, 'tab' => 'planned-outage']);
@@ -110,7 +113,7 @@ class ProcessPlannedOutageController extends AbstractController
     // }
 
     /**
-     * Remove the specified resource from storage.
+     * 工程計画停止時間を削除する。管理者のみ使用可能。
      *
      * @param Process $process 工程
      * @param ProcessPlannedOutage $processPlannedOutage

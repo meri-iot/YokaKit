@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Enums\RoleType;
@@ -43,7 +45,7 @@ class CreateSystemUserCommand extends Command
     /**
      * コマンドの引数に適用するバリデーションルール
      *
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
     protected function rules(): array
     {
@@ -61,6 +63,7 @@ class CreateSystemUserCommand extends Command
      */
     public function handle(): int
     {
+        // ValidatesInput が handle 実行前に rules() を使って引数検証を行う。
         $name = $this->argument('name');
         $email = $this->argument('email');
         $password = $this->argument('password');

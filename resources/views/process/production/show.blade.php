@@ -20,7 +20,8 @@
                         <div class="col-auto mr-2">
                             <h5>
                                 <span>
-                                    <i class="fa-solid fa-fw fa-square" style="color: {{ $line->chart_color }}"></i>
+                                    {{-- chart_colorはサニタイズ済み想定だが、念のためe()でエスケープ --}}
+                                    <i class="fa-solid fa-fw fa-square" style="color: {{ e($line->chart_color) }}"></i>
                                     <span>{{ $line->line_name }}：</span>
                                     <strong class="font-digit" id="production-line-{{ $line->production_line_id }}">&nbsp;</strong>
                                 </span>

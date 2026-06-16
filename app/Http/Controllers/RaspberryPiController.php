@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRaspberryPiRequest;
@@ -35,7 +37,7 @@ class RaspberryPiController extends AbstractController
     }
 
     /**
-     * Display a listing of the resource.
+     * ラズベリーパイ一覧画面を表示する。
      *
      * @return View
      */
@@ -46,7 +48,7 @@ class RaspberryPiController extends AbstractController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ラズベリーパイ追加フォーム画面を表示する。管理者のみ使用可能。
      *
      * @return View
      */
@@ -57,13 +59,14 @@ class RaspberryPiController extends AbstractController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ラズベリーパイを新規登録する。管理者のみ使用可能。
      *
      * @param StoreRaspberryPiRequest $request リクエスト
      * @return RedirectResponse
      */
     public function store(StoreRaspberryPiRequest $request): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->store($request);
         return $this->redirectWithStore($result, 'raspberry-pi.index');
     }
@@ -80,7 +83,7 @@ class RaspberryPiController extends AbstractController
     // }
 
     /**
-     * Show the form for editing the specified resource.
+     * ラズベリーパイ編集フォーム画面を表示する。管理者のみ使用可能。
      *
      * @param RaspberryPi $raspberryPi
      * @return View
@@ -92,7 +95,7 @@ class RaspberryPiController extends AbstractController
     }
 
     /**
-     * Update the specified resource in storage.
+     * ラズベリーパイを更新する。管理者のみ使用可能。
      *
      * @param UpdateRaspberryPiRequest $request リクエスト
      * @param RaspberryPi $raspberryPi
@@ -100,12 +103,13 @@ class RaspberryPiController extends AbstractController
      */
     public function update(UpdateRaspberryPiRequest $request, RaspberryPi $raspberryPi): RedirectResponse
     {
+        $this->authorizeAdmin();
         $result = $this->service->update($request, $raspberryPi);
         return $this->redirectWithUpdate($result, 'raspberry-pi.index');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ラズベリーパイを削除する。管理者のみ使用可能。
      *
      * @param RaspberryPi $raspberryPi
      * @return RedirectResponse

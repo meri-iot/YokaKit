@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Data\PayloadData;
@@ -8,13 +10,12 @@ use App\Repositories\PayloadRepository;
 use App\Repositories\ProductionHistoryRepository;
 use App\Repositories\ProductionRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -29,9 +30,9 @@ class ChangeoverJob implements ShouldQueue
     /**
      * 段取り替えの開始/終了ジョブインスタンスを作成する
      *
-     * @param integer $productionHistoryId 生産履歴ID
+     * @param int $productionHistoryId 生産履歴ID
      * @param Carbon $date 段取り替え開始/終了の時刻
-     * @param boolean $changeover trueの場合段取り替えの開始
+     * @param bool $changeover trueの場合段取り替えの開始
      */
     public function __construct(
         private readonly int $productionHistoryId,
@@ -48,26 +49,31 @@ class ChangeoverJob implements ShouldQueue
     /**
      * 段取り替えの開始/終了ジョブを実行する。
      *
+     * Queue Worker が handle 引数へ依存解決した Repository を注入する。
+     *
+     * @param PayloadRepository $payloadRepository
+     * @param ProductionHistoryRepository $productionHistoryRepository
+     * @param ProductionRepository $productionRepository
      * @return void
      */
-    public function handle()
-    {
+    public function handle(
+        PayloadRepository $payloadRepository,
+        ProductionHistoryRepository $productionHistoryRepository,
+        ProductionRepository $productionRepository,
+    ): void {
         Log::info('Execute ChangeoverJob', [
             'date' => Utility::format($this->date),
             'productionHistoryId' => ($this->productionHistoryId),
             'changeover' => $this->changeover,
         ]);
-        DB::transaction(function () {
-
-            /** @var PayloadRepository */
-            $payloadRepository = App::make(PayloadRepository::class);
-            /** @var ProductionHistoryRepository */
-            $productionHistoryRepository = App::make(ProductionHistoryRepository::class);
-            /** @var ProductionRepository */
-            $productionRepository = App::make(ProductionRepository::class);
+        DB::transaction(function () use (
+            $payloadRepository,
+            $productionHistoryRepository,
+            $productionRepository,
+        ) {
 
             $history = $productionHistoryRepository->find($this->productionHistoryId, ['productionLines.payload']);
-            Utility::throwIfNullException($history);
+            Utility::ensureModelExists($history);
 
             $cycleTimeMs = $history->cycleTimeMs();
             foreach ($history->productionLines as $productionLine) {
@@ -84,17 +90,27 @@ class ChangeoverJob implements ShouldQueue
 
                 // 生産データを追加
                 $production = $productionRepository->save($productionLineId, $payloadData);
-                Utility::throwIfNullException($production);
+                Utility::ensureModelExists($production);
 
-                // 段取り替えの開始・終了を通知
-                $productionLine->indicator && ProductionSummaryNotification::dispatch($history, $payloadData);
+                // 通知・後続ジョブはコミット後に投入し、未コミット状態を参照しないようにする。
+                if ($productionLine->indicator) {
+                    DB::afterCommit(static function () use ($productionHistoryRepository, $history, $payloadData): void {
+                        ProductionSummaryNotification::dispatch($productionHistoryRepository->makeProductionSummary($history, $payloadData));
+                    });
+                }
 
                 // 計画値カウントジョブを登録
                 $delay = $this->date->copy()->addMilliseconds($cycleTimeMs - ($payloadData->operatingTime % $cycleTimeMs));
-                PlanCountJob::dispatch($productionLineId, $cycleTimeMs, $delay, $this->changeover, $payloadData->jobKey)->delay($delay);
+                PlanCountJob::dispatch($productionLineId, $cycleTimeMs, $delay, $this->changeover, $payloadData->jobKey)
+                    ->delay($delay)
+                    ->afterCommit();
 
                 // チョコ停判定ジョブを登録
-                $this->changeover || BreakdownJudgeJob::delayedDispatch($history->overTimeMs(), $production);
+                if ($productionLine->indicator === true && $this->changeover === false) {
+                    DB::afterCommit(function () use ($history, $production): void {
+                        BreakdownJudgeJob::delayedDispatch($history->overTimeMs(), $production);
+                    });
+                }
             }
         });
     }

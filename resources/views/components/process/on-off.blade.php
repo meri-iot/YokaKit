@@ -1,7 +1,10 @@
 <div class="position-relative float-right pr-2" style="top:-2.75rem; height: 0;">
     @can('admin')
         @if ($process->isStopped())
-            <x-button-add class="pt-0 pb-0" href="{{ route('onoff.create', ['process' => $process]) }}" />
+            <a class="btn btn-tool pb-0 pt-0" href="{{ route('onoff.index', ['process' => $process]) }}" role="button">
+                <i class="fa-solid fa-lg fa-message"></i>
+            </a>
+            <x-button-add class="pb-0 pt-0" href="{{ route('onoff.create', ['process' => $process]) }}" />
         @endif
     @endcan
 </div>
@@ -42,19 +45,19 @@
                             <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.notification')]) }}</strong>
                             <x-adminlte-card class="mt-4">
                                 <strong>{{ __('yokakit.target_name', ['target' => __('yokakit.event')]) }}</strong>
-                                <p class="mt-1 ml-2">{{ $onOff->event_name }}</p>
+                                <p class="ml-2 mt-1">{{ $onOff->event_name }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.target_message', ['target' => 'ON']) }}</strong>
-                                <p class="mt-1 ml-2">{{ $onOff->on_message }}</p>
+                                <p class="ml-2 mt-1">{{ $onOff->on_message }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.target_message', ['target' => 'OFF']) }}</strong>
-                                <p class="mt-1 ml-2">{{ $onOff->off_message }}</p>
+                                <p class="ml-2 mt-1">{{ $onOff->off_message }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.raspberry_pi') }}</strong>
-                                <p class="mt-1 ml-2">{{ $onOff->raspberryPi->raspberry_pi_name }}</p>
+                                <p class="ml-2 mt-1">{{ $onOff->raspberryPi->raspberry_pi_name }}</p>
                                 <hr>
                                 <strong>{{ __('yokakit.pin_number') }}</strong>
-                                <p class="mt-1 ml-2">{{ $onOff->pinNumber() }}</p>
+                                <p class="mb-0 ml-2 mt-1">{{ $onOff->pinNumber() }}</p>
                             </x-adminlte-card>
                         </x-modal-delete>
                     @endif

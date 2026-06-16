@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\BaseController;
@@ -22,16 +24,18 @@ class StopProductionController extends BaseController
      */
     public function __construct(
         private readonly ProductionHistoryService $service
-    ) {
-    }
+    ) {}
 
     /**
-     * Handle the incoming request.
+     * 受信したリクエストを処理し、生産停止を実行する。
+     *
+     * 管理者権限を確認したうえで停止処理を呼び出し、対象工程が見つからない場合は
+     * 400 Bad Request を返す。
      *
      * @param StopProductionRequest $request
      * @return Response
      */
-    public function __invoke(StopProductionRequest $request)
+    public function __invoke(StopProductionRequest $request): Response
     {
         $this->authorizeAdmin();
         try {

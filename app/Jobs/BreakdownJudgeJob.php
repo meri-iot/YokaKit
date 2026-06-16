@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Data\PayloadData;
@@ -12,13 +14,12 @@ use App\Repositories\ProductionHistoryRepository;
 use App\Repositories\ProductionLineRepository;
 use App\Repositories\ProductionRepository;
 use App\Services\Utility;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -48,40 +49,54 @@ class BreakdownJudgeJob implements ShouldQueue
     /**
      * チョコ停判定ジョブを実行する。
      *
+     * Queue Worker が handle 引数へ依存解決した Repository を注入する。
+     *
+     * @param PayloadRepository $payloadRepository
+     * @param ProductionHistoryRepository $productionHistoryRepository
+     * @param ProductionLineRepository $productionLineRepository
+     * @param ProductionRepository $productionRepository
      * @return void
      */
-    public function handle()
-    {
+    public function handle(
+        PayloadRepository $payloadRepository,
+        ProductionHistoryRepository $productionHistoryRepository,
+        ProductionLineRepository $productionLineRepository,
+        ProductionRepository $productionRepository,
+    ): void {
         Log::info('Execute BreakdownJudgeJob', [
             'breakdownTime' => Utility::format($this->breakdownTime),
             'production' => $this->production->toArray(),
         ]);
 
-        DB::transaction(function () {
+        DB::transaction(function () use (
+            $payloadRepository,
+            $productionHistoryRepository,
+            $productionLineRepository,
+            $productionRepository,
+        ) {
 
-            /** @var PayloadRepository */
-            $payloadRepository = App::make(PayloadRepository::class);
-            /** @var ProductionHistoryRepository */
-            $productionHistoryRepository = App::make(ProductionHistoryRepository::class);
-            /** @var ProductionLineRepository */
-            $productionLineRepository = App::make(ProductionLineRepository::class);
-            /** @var ProductionRepository */
-            $productionRepository = App::make(ProductionRepository::class);
+            // 判定対象の生産ラインと現在の指標データを取得する。
 
             /** @var ?ProductionLine */
             $productionLine = $productionLineRepository->find($this->production->production_line_id, ['productionHistory.productionLines']);
-            Utility::throwIfNullException($productionLine);
+            Utility::ensureModelExists($productionLine);
 
             $payload = $payloadRepository->getPayload($productionLine);
             $payloadData = $payload->getPayloadData();
 
             if ($payloadData->status()->isNot(ProductionStatus::RUNNING())) {
-                // 稼働中でない場合は終了
+                // 稼働中でない場合はチョコ停判定対象外。
                 Log::debug('Status is not RUNNING.');
                 return;
             }
 
-            // 生産時刻からチョコ停時刻からチョコ停が発生したかどうかをチェック
+            if ($payloadData->indicator === false) {
+                // 指標となるラインでない場合は判定を行わない。
+                Log::debug('Indicator is false.');
+                return;
+            }
+
+            // 基準生産から判定時刻までに増産やステータス変化がないかを調べる。
             $isBreakdown = $productionRepository->judgeBreakdown($this->production, $this->breakdownTime);
             if (!$isBreakdown) {
                 // チョコ停ではなかった場合は終了
@@ -96,29 +111,31 @@ class BreakdownJudgeJob implements ShouldQueue
                 $productionHistoryRepository->updateStatus($history, ProductionStatus::BREAKDOWN());
             }
 
-            // チョコ停の開始を生産データに追加
-            $productionLines = $productionLine->productionHistory->productionLines;
-            foreach ($productionLines as $pl) {
-                $payloadData = $payloadRepository->updatePayload(
-                    $pl,
-                    fn (PayloadData $x) => $x->addBreakdown($this->breakdownTime, true)
-                );
-                $productionRepository->save($pl->production_line_id, $payloadData);
-                $pl->indicator && ProductionSummaryNotification::dispatch($history, $payloadData);
-            }
+            // 指標データへチョコ停開始を記録し、スナップショット生産データを保存して通知する。
+            $indicatorLine = $productionLine->productionHistory->indicatorLine;
+            $payloadData = $payloadRepository->updatePayload(
+                $indicatorLine,
+                fn(PayloadData $x) => $x->addBreakdown($this->breakdownTime, true)
+            );
+            $productionRepository->save($indicatorLine->production_line_id, $payloadData);
+            DB::afterCommit(static function () use ($productionHistoryRepository, $history, $payloadData): void {
+                ProductionSummaryNotification::dispatch($productionHistoryRepository->makeProductionSummary($history, $payloadData));
+            });
         });
     }
 
     /**
      * チョコ停判定ジョブを登録し、指定されたオーバータイムだけ遅延実行させる。
      *
-     * @param integer $overTimeMs オーバータイム[ms]
+     * @param int $overTimeMs オーバータイム[ms]
      * @param Production $production チョコ停基準となる生産データ
      * @return void
      */
     public static function delayedDispatch(int $overTimeMs, Production $production): void
     {
         $delay = $production->at->copy()->addMilliseconds($overTimeMs);
-        BreakdownJudgeJob::dispatch($production, $delay)->delay($delay);
+        BreakdownJudgeJob::dispatch($production, $delay)
+            ->delay($delay)
+            ->afterCommit();
     }
 }

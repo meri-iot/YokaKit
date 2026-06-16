@@ -7,9 +7,9 @@
     <div class="row">
         @php
             $heads = ['#', __('yokakit.name'), __('yokakit.email'), __('yokakit.role'), ['label' => '', 'no-export' => true, 'width' => 5]];
-            $colmns = [['visible' => false], null, null, null, ['orderable' => false, 'searchable' => false]];
+            $columns = [['visible' => false], null, null, null, ['orderable' => false, 'searchable' => false]];
             $config = [
-                'columns' => $colmns,
+                'columns' => $columns,
                 'language' => ['url' => route('datatables')],
             ];
         @endphp
@@ -29,13 +29,13 @@
                         <strong>{{ __('yokakit.confirm_delete', ['target' => __('yokakit.user')]) }}</strong>
                         <x-adminlte-card class="mt-4">
                             <strong>{{ __('yokakit.name') }}</strong>
-                            <p class="mt-1 ml-2">{{ $user->name }}</p>
+                            <p class="ml-2 mt-1">{{ $user->name }}</p>
                             <hr>
                             <strong>{{ __('yokakit.email') }}</strong>
-                            <p class="mt-1 ml-2 mb-0">{{ $user->email }}</p>
+                            <p class="mb-0 ml-2 mt-1">{{ $user->email }}</p>
                             <hr>
                             <strong>{{ __('yokakit.role') }}</strong>
-                            <p class="mt-1 ml-2 mb-0">{{ $user->role->description }}</p>
+                            <p class="mb-0 ml-2 mt-1">{{ $user->role->description }}</p>
                         </x-adminlte-card>
                     </x-modal-delete>
                 </tr>
